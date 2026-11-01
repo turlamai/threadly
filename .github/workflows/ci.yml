@@ -6,7 +6,10 @@ on:
   pull_request:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # GitHub retains only one pending run per concurrency group. Main runs
+  # must have unique groups so a later push cannot silently drop a queued
+  # required quality gate; superseded revisions of the same PR may cancel.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
