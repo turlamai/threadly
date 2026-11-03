@@ -28,7 +28,7 @@
          form-encode-fields)
 
 (define http-user-agent
-  (format "Threadly/~a (+https://github.com/turinglambdaai/threadly)" app-version))
+  (format "Threadly/~a (+https://github.com/turlamai/threadly)" app-version))
 
 ;; ---- URL splitting (no net/url dependency; forum URLs are plain https) ----
 

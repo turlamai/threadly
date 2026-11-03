@@ -32,6 +32,6 @@
 
 先完成本仓 #1 的交付/维护门禁；免费并不降低签名更新、数据恢复或隐私要求。
 
-执行入口：[本仓 #1](https://github.com/turinglambdaai/threadly/issues/1)。先交付这个切片，再扩展商业功能。
+执行入口：[本仓 #1](https://github.com/turlamai/threadly/issues/1)。先交付这个切片，再扩展商业功能。
 
-组合定位及通用边界：[PORTFOLIO 中文版](https://github.com/turinglambdaai/turinglambdaai.github.io/blob/master/PORTFOLIO.zh-CN.md)。
+组合定位及通用边界：[PORTFOLIO 中文版](https://github.com/turlamai/turlamai.github.io/blob/master/PORTFOLIO.zh-CN.md)。

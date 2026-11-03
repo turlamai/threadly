@@ -33,7 +33,7 @@ struct AboutSheet: View {
                 Link("Website",
                      destination: URL(string: "https://threadly.jrtx.site")!)
                 Link("Report an Issue",
-                     destination: URL(string: "https://github.com/turinglambdaai/threadly/issues")!)
+                     destination: URL(string: "https://github.com/turlamai/threadly/issues")!)
             }
             .font(.system(size: 12))
             .tint(DesignTokens.accent)
