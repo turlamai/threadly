@@ -236,7 +236,7 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
       document.querySelectorAll('a[data-release-suffix]').forEach(function (a) {
         a.href = page;
         if (!release || release.draft || release.prerelease ||
-            !/^v[0-9]+\\.[0-9]+\\.[0-9]+$/.test(release.tag_name)) return;
+            !/^v[0-9]+\.[0-9]+\.[0-9]+$/.test(release.tag_name)) return;
         var name = 'threadly-' + release.tag_name.slice(1) + '-' + a.dataset.releaseSuffix;
         var exact = 'https://github.com/turlamai/threadly/releases/download/' + release.tag_name + '/' + name;
         if ((release.assets || []).some(function (x) {
