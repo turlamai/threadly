@@ -249,36 +249,33 @@ jobs:
           - Linux: native packages require no paid publisher account.
           - In-app update metadata is Ed25519 signed; clients must verify the signature and downloaded payload digest.
           SIGNING_STATUS
-          cd dist
-          for f in *.sha256; do [ -s "$f" ] || rm -f "$f"; done
-          cat *.sha256 > SHA256SUMS
-          # Draft, not public: the family release gate (AGENTS.md) requires
-          # the real artifacts — installed, launched, reading real threads —
-          # to pass on every platform BEFORE anything is public. Promotion
-          # is `gh release edit <tag> --draft=false --latest` after that
-          # acceptance pass.
+          # Preserve the draft-only acceptance gate, but curate the exact
+          # public set before it is eligible for manual promotion.
+          (cd dist && cat *.sha256 | sed 's/ \*/  /' | LC_ALL=C sort -k2 > SHA256SUMS && sha256sum -c SHA256SUMS)
+          mkdir -p public
+          for suffix in \
+            macos-arm64.dmg macos-arm64.zip macos-x64.dmg macos-x64.zip \
+            windows-x64.msi windows-x64.zip \
+            linux-arm64.tar.gz linux-arm64.zip linux-x64.tar.gz linux-x64.zip \
+            linux-amd64.deb linux-arm64.deb \
+            linux-aarch64.AppImage linux-x86_64.AppImage; do
+            name="threadly-$VERSION-$suffix"
+            test -s "dist/$name" || { echo "::error::Missing $name"; exit 1; }
+            cp "dist/$name" public/
+          done
+          for arch in aarch64 x86_64; do
+            rpm="$(find dist -maxdepth 1 -type f -name "threadly-$VERSION-*-linux-$arch.rpm" -print -quit)"
+            test -s "$rpm" || { echo "::error::Missing $arch RPM"; exit 1; }
+            cp "$rpm" public/
+          done
+          cp dist/SHA256SUMS dist/update-manifest.json public/
+          test -s public/update-manifest.json
+          test "$(find public -maxdepth 1 -type f -name 'threadly-*' | wc -l)" -eq 16
+          (cd public && sha256sum -c SHA256SUMS)
+          test -s /tmp/notes.md
+          # Draft only; manual acceptance controls promotion to Latest.
           gh release create "$GITHUB_REF_NAME" \
             --draft \
-            --title "Threadly ${VERSION}" \
+            --title "Threadly $VERSION" \
             --notes-file /tmp/notes.md \
-            *.zip *.tar.gz *.dmg *.msi *.deb *.rpm *.AppImage \
-            *.sha256 SHA256SUMS update-manifest.json
-      - name: Stable alias copies (versionless direct-download links)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          # Family rule: download buttons point at
-          # releases/latest/download/<alias>, so every release also ships
-          # versionless copies of the primary installers. Aliases are
-          # overwritten on each release; the versioned assets stay canonical.
-          mkdir -p stable-alias
-          cp "dist/threadly-${VERSION}-macos-arm64.dmg" stable-alias/threadly-macos-arm64.dmg
-          cp "dist/threadly-${VERSION}-macos-x64.dmg" stable-alias/threadly-macos-x64.dmg
-          cp "dist/threadly-${VERSION}-windows-x64.msi" stable-alias/threadly-windows-x64.msi
-          cp "dist/threadly-${VERSION}-linux-amd64.deb" stable-alias/threadly-linux-x64.deb
-          cp "dist/threadly-${VERSION}-linux-arm64.deb" stable-alias/threadly-linux-arm64.deb
-          cp "dist/threadly-${VERSION}-linux-x86_64.AppImage" stable-alias/threadly-linux-x64.AppImage
-          cp "dist/threadly-${VERSION}-linux-aarch64.AppImage" stable-alias/threadly-linux-arm64.AppImage
-          gh release upload "$GITHUB_REF_NAME" stable-alias/* --clobber -R turlamai/threadly
+            public/*
