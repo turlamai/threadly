@@ -75,7 +75,7 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
       API 把它们带回原生窗口：论坛原色分类、帖子头像、680px 的阅读栏宽。
     </p>
     <div class="cta">
-      <a class="btn btn-primary" href="https://github.com/turlamai/threadly/releases/latest/download/threadly-macos-arm64.dmg" data-i18n="hero.download">获取 Threadly</a>
+      <a class="btn btn-primary" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="macos-arm64.dmg" data-i18n="hero.download">获取 Threadly</a>
       <a class="btn btn-secondary" href="https://github.com/turlamai/threadly" data-i18n="hero.source">查看源码</a>
     </div>
   </section>
@@ -153,22 +153,22 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
   <section id="download" class="section alt">
     <h2 data-i18n="download-title">下载</h2>
     <div class="dl-grid">
-      <a class="dl-card" data-dl="mac-arm" href="https://github.com/turlamai/threadly/releases/latest/download/threadly-macos-arm64.dmg">
+      <a class="dl-card" data-dl="mac-arm" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="macos-arm64.dmg">
         <h3>macOS（Apple Silicon）</h3>
         <p data-i18n="dl-mac-arm">DMG 安装器，适配 M 系列芯片。</p>
         <span class="btn btn-primary" data-i18n="dl-get">下载 →</span>
       </a>
-      <a class="dl-card" data-dl="mac-x64" href="https://github.com/turlamai/threadly/releases/latest/download/threadly-macos-x64.dmg">
+      <a class="dl-card" data-dl="mac-x64" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="macos-x64.dmg">
         <h3>macOS（Intel）</h3>
         <p data-i18n="dl-mac-x64">DMG 安装器，适配 Intel 芯片。</p>
         <span class="btn btn-primary" data-i18n="dl-get">下载 →</span>
       </a>
-      <a class="dl-card" data-dl="win" href="https://github.com/turlamai/threadly/releases/latest/download/threadly-windows-x64.msi">
+      <a class="dl-card" data-dl="win" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="windows-x64.msi">
         <h3>Windows（x64）</h3>
         <p data-i18n="dl-win">MSI 安装器与便携 zip。</p>
         <span class="btn btn-primary" data-i18n="dl-get">下载 →</span>
       </a>
-      <a class="dl-card" data-dl="linux" href="https://github.com/turlamai/threadly/releases/latest/download/threadly-linux-x64.AppImage">
+      <a class="dl-card" data-dl="linux" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="linux-x86_64.AppImage">
         <h3>Linux（x64 / arm64）</h3>
         <p data-i18n="dl-linux">deb、rpm、AppImage、tar.gz 与便携 zip。</p>
         <span class="btn btn-primary" data-i18n="dl-get">下载 →</span>
@@ -210,49 +210,53 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
 <nav id="product-support" aria-label="Support / 支持"><a href="https://github.com/turlamai/threadly/issues"><span class="support-zh">反馈</span><span class="support-en" lang="en">Feedback</span></a> <a href="https://github.com/turlamai/threadly/releases"><span class="support-zh">发布与更新</span><span class="support-en" lang="en">Releases</span></a> <a href="https://github.com/turlamai/threadly/blob/main/LICENSE"><span class="support-zh">源码许可</span><span class="support-en" lang="en">Source license</span></a> <a class="support-zh" href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.zh-CN.md">使用与帮助</a> <a class="support-en" lang="en" href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.md">Usage & help</a></nav>
 
 <script>
-  // Platform-aware direct downloads: the hero CTA and the matching dl-card
-  // point at the versionless alias for the visitor's OS (mac/linux arch
-  // refined via userAgentData; macOS UAs freeze at "Intel", so arm64 is the
-  // default there). Runs before the i18n block below so its language pass
-  // applies the OS-specific hero label.
+  // Select the platform and resolve the exact stable tag's asset. Draft
+  // releases never become direct-download targets before acceptance.
   (function () {
-    var BASE = 'https://github.com/turlamai/threadly/releases/latest/download/';
+    var page = 'https://github.com/turlamai/threadly/releases/latest';
     var ua = navigator.userAgent;
     var os = /Windows/i.test(ua) ? 'win' : (/Mac|iPhone|iPad/i.test(ua) ? 'mac' : (/Linux|X11/i.test(ua) ? 'linux' : 'mac'));
     var arch = os === 'linux' && /aarch64|arm/i.test(ua) ? 'arm64' : (os === 'linux' ? 'x64' : 'arm64');
+    var release = null;
     var style = document.createElement('style');
     style.textContent = '.dl-card.current{outline:2px solid var(--accent,#0f766e);outline-offset:2px}';
     document.head.appendChild(style);
-    var heroFile = { mac: 'threadly-macos-' + arch + '.dmg', win: 'threadly-windows-x64.msi', linux: 'threadly-linux-' + arch + '.AppImage' }[os];
-    var heroUrl = BASE + heroFile;
-    document.querySelectorAll('a[data-i18n="hero.download"]').forEach(function (a) {
-      a.href = heroUrl;
-      a.setAttribute('data-i18n', 'hero.download-' + os);
-    });
-    var currentCard = { mac: arch === 'x64' ? 'mac-x64' : 'mac-arm', win: 'win', linux: 'linux' }[os];
-    document.querySelectorAll('a.dl-card[data-dl]').forEach(function (card) {
-      var kind = card.getAttribute('data-dl');
-      if (kind === 'linux') card.setAttribute('href', BASE + 'threadly-linux-' + arch + '.AppImage');
-      if (kind === currentCard) card.classList.add('current');
-    });
+    var heroes = document.querySelectorAll('a[data-i18n="hero.download"]');
+    heroes.forEach(function (a) { a.setAttribute('data-i18n', 'hero.download-' + os); });
+    function resolve() {
+      var suffix = {mac: 'macos-' + arch + '.dmg', win: 'windows-x64.msi',
+                    linux: 'linux-' + (arch === 'x64' ? 'x86_64' : 'aarch64') + '.AppImage'}[os];
+      heroes.forEach(function (a) { a.dataset.releaseSuffix = suffix; });
+      var linux = document.querySelector('a.dl-card[data-dl="linux"]');
+      if (linux) linux.dataset.releaseSuffix = 'linux-' + (arch === 'x64' ? 'x86_64' : 'aarch64') + '.AppImage';
+      var active = {mac: arch === 'x64' ? 'mac-x64' : 'mac-arm', win: 'win', linux: 'linux'}[os];
+      document.querySelectorAll('a.dl-card[data-dl]').forEach(function (a) {
+        a.classList.toggle('current', a.getAttribute('data-dl') === active);
+      });
+      document.querySelectorAll('a[data-release-suffix]').forEach(function (a) {
+        a.href = page;
+        if (!release || release.draft || release.prerelease ||
+            !/^v[0-9]+\\.[0-9]+\\.[0-9]+$/.test(release.tag_name)) return;
+        var name = 'threadly-' + release.tag_name.slice(1) + '-' + a.dataset.releaseSuffix;
+        var exact = 'https://github.com/turlamai/threadly/releases/download/' + release.tag_name + '/' + name;
+        if ((release.assets || []).some(function (x) {
+          return x.name === name && x.size > 0 && x.browser_download_url === exact;
+        })) a.href = exact;
+      });
+    }
+    resolve();
     if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
       navigator.userAgentData.getHighEntropyValues(['architecture', 'platform']).then(function (h) {
-        if (!h || /Windows/i.test(h.platform || '')) return; // windows ships x64-only
+        if (!h || /Windows/i.test(h.platform || '')) return;
         var a = h.architecture === 'arm' ? 'arm64' : (h.architecture === 'x86' ? 'x64' : null);
-        if (!a || a === arch) return;
-        if (os === 'mac') {
-          var f = 'threadly-macos-' + a + '.dmg';
-          document.querySelectorAll('a[href^="' + BASE + '"]').forEach(function (x) { x.setAttribute('href', BASE + f); });
-          var cards = document.querySelectorAll('a.dl-card[data-dl]');
-          cards.forEach(function (c) { c.classList.remove('current'); });
-          var pick = document.querySelector('a.dl-card[data-dl="mac-' + (a === 'x64' ? 'x64' : 'arm') + '"]');
-          if (pick) pick.classList.add('current');
-        } else if (os === 'linux') {
-          var f2 = 'threadly-linux-' + a + '.AppImage';
-          document.querySelectorAll('a[href^="' + BASE + '"]').forEach(function (x) { x.setAttribute('href', BASE + f2); });
-        }
+        if (a && a !== arch) { arch = a; resolve(); }
       }).catch(function () {});
     }
+    fetch('https://api.github.com/repos/turlamai/threadly/releases/latest',
+          {headers: {'Accept': 'application/vnd.github+json'}})
+      .then(function (r) { if (!r.ok) throw new Error('release lookup'); return r.json(); })
+      .then(function (data) { release = data; resolve(); })
+      .catch(function () { /* Preserve the Release-page fallback. */ });
   })();
 </script>
 <script>
