@@ -773,7 +773,7 @@ winrt::fire_and_forget MainWindow::OnAbout(
   auto issue = muxc::HyperlinkButton{};
   issue.Content(winrt::box_value(winrt::hstring(L"Report an Issue")));
   issue.NavigateUri(winrt::Windows::Foundation::Uri{
-      L"https://github.com/turinglambdaai/threadly/issues"});
+      L"https://github.com/turlamai/threadly/issues"});
   issue.HorizontalAlignment(mx::HorizontalAlignment::Center);
   issue.Padding({0, 0, 0, 0});
   panel.Children().Append(tagline);

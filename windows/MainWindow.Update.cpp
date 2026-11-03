@@ -26,7 +26,7 @@ namespace {
 namespace muxc = winrt::Microsoft::UI::Xaml::Controls;
 
 constexpr wchar_t kReleasesUrl[] =
-    L"https://github.com/turinglambdaai/threadly/releases";
+    L"https://github.com/turlamai/threadly/releases";
 
 std::int64_t epoch_seconds() {
   FILETIME now{};
