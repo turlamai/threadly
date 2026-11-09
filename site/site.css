@@ -1,0 +1,59 @@
+/* ============================================================
+   Threadly site.css — per-site sections only.
+   Shared frame lives in family.css (site-kit); do not duplicate.
+   ============================================================ */
+
+/* Availability line under the headline. */
+.tl-availability {
+    max-width: 64ch;
+    margin: 22px auto 0;
+    font-size: 14.5px;
+    line-height: 1.7;
+}
+
+/* Emoji card icons keep their original character marks. */
+.tl-emoji { font-size: 19px; line-height: 1; }
+
+/* Platform chip row in the download section. */
+.tl-platform-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Roadmap list. */
+.tl-roadmap {
+    list-style: none;
+    margin: 32px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+    max-width: 74ch;
+}
+.tl-roadmap li {
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    padding: 14px 18px;
+    background: var(--kit-bg-elevated);
+    border: 1px solid var(--kit-border);
+    border-radius: var(--kit-radius-m);
+    font-size: 15px;
+    color: var(--kit-text-2);
+    line-height: 1.6;
+}
+.tl-roadmap li strong {
+    color: var(--kit-accent-strong);
+    font-family: var(--kit-font-mono);
+    font-size: 13px;
+    flex: none;
+}
+html[data-theme="dark"] .tl-roadmap li strong { color: var(--kit-accent); }
+
+/* Start-section inline link row. */
+.tl-start-links {
+    display: flex;
+    gap: 16px 24px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+}
+
+/* ---------- Icon visibility per theme ---------- */
+html[data-theme="light"] .kit-icon-moon { display: none; }
+html[data-theme="dark"] .kit-icon-sun { display: none; }

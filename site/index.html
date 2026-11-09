@@ -1,389 +1,454 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN" data-kit-id="threadly" data-kit-lang-key="threadly-lang">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Threadly — Racket 社区论坛的原生客户端</title>
-<meta name="description" content="Threadly: 在浏览器之外浏览、阅读、搜索 racket.discourse.group。匿名公开 JSON API 加礼貌的磁盘缓存，论坛原色分类、帖子头像与 680px 阅读栏宽。Rivet 线——Racket 引擎驱动原生壳。">
-<link rel="stylesheet" href="styles.css">
-<script>
-  (function () {
-    var t = localStorage.getItem('threadly-theme');
-    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    document.documentElement.dataset.theme = t;
-    var l = localStorage.getItem('threadly-lang');
-    if (!l) l = (navigator.language || 'zh').toLowerCase().startsWith('zh') ? 'zh' : 'en';
-    document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
-  })();
-</script>
-<script>
-var _hmt = _hmt || [];
-(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?8e2445912635226bcba0c400bfb6079d";
-  var s = document.getElementsByTagName("script")[0];
-  s.parentNode.insertBefore(hm, s);
-})();
-</script>
-<style>
-  #product-support { display:flex; flex-wrap:wrap; justify-content:center; gap:12px 24px; padding:24px; font:inherit; border-top:1px solid var(--border, #a8a29e); }
-  #product-support a:focus-visible { outline:2px solid currentColor; outline-offset:4px; }
-  html:lang(en) #product-support .support-zh, html:lang(zh) #product-support .support-en { display:none; }
-</style>
-<style id="product-start-style">
-.product-availability{font-size:.95rem;line-height:1.65;max-width:72ch;margin:18px 0;opacity:.85} .hero .product-availability{margin-left:auto;margin-right:auto}
-.product-start{max-width:1120px;margin:64px auto;padding:32px 24px;border-top:1px solid var(--border,#aaa);font:inherit;line-height:1.65}
-.product-start h2{font-size:clamp(1.7rem,3vw,2.4rem);letter-spacing:-.025em;margin:0 0 16px}.product-start h3{font-size:1.05rem;margin:0 0 10px}.product-start p{margin:0 0 16px;max-width:74ch}.product-start-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:28px 0}.product-start a{text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere}.product-start a:focus-visible{outline:2px solid currentColor;outline-offset:5px}.product-start .start-links{display:flex;gap:16px 24px;flex-wrap:wrap}.product-start .start-status{font-weight:600}.product-start .start-limits{font-size:.95em}
-html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(max-width:700px){.product-start{margin:40px auto;padding:24px 20px}.product-start-grid{grid-template-columns:1fr;gap:18px}}
-</style>
-<style>.lang-menu li.lang-choice{padding:0}.lang-menu .lang-choice button{display:block;width:100%;padding:8px 12px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.lang-menu .lang-choice button:focus-visible{outline:2px solid currentColor;outline-offset:-2px;border-radius:4px}</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threadly — Racket 社区论坛的原生客户端</title>
+    <meta name="description" content="Threadly: 在浏览器之外浏览、阅读、搜索 racket.discourse.group。匿名公开 JSON API 加礼貌的磁盘缓存，论坛原色分类、帖子头像与 680px 阅读栏宽。Rivet 线——Racket 引擎驱动原生壳。">
+    <link rel="canonical" href="https://threadly.jrtx.site/">
+    <meta name="theme-color" content="#D97757">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Threadly">
+    <meta property="og:title" content="Threadly — a native client for the Racket community forum">
+    <meta property="og:description" content="Browse, read and search racket.discourse.group outside the browser: anonymous public JSON API with a polite disk cache, forum-authentic category colors, post avatars and a 680px reading column.">
+    <meta property="og:url" content="https://threadly.jrtx.site/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Threadly — a native client for the Racket community forum">
+    <meta name="twitter:description" content="Read the Racket community outside the browser. Native, cached politely, credentials stay local.">
+
+    <!-- Theme + language pre-paint: no flash before the stylesheet paints.
+         Storage keys are the site's historical keys (threadly-theme /
+         threadly-lang — carried forward via data-kit-lang-key on <html>)
+         so returning visitors keep preferences. -->
+    <script>
+        (function () {
+            var t;
+            try { t = localStorage.getItem('threadly-theme'); } catch (e) {}
+            if (t !== 'dark' && t !== 'light') {
+                t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.dataset.theme = t;
+            var l;
+            try { l = localStorage.getItem('threadly-lang'); } catch (e) {}
+            if (l !== 'zh' && l !== 'en') {
+                l = (navigator.language || 'zh').toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en';
+            }
+            document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
+        })();
+    </script>
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%23D97757'/%3E%3Cpath d='M140 186 h232 M140 256 h172 M140 326 h232' stroke='%23FFFFFF' stroke-width='34' stroke-linecap='round'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="family.css">
+    <link rel="stylesheet" href="site.css">
+    <link rel="preload" href="fonts/newsreader-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+    <script src="family.js" defer></script>
 </head>
+
 <body>
-<header class="nav">
-  <div class="nav-inner">
-    <a class="brand" href="#">Threadly</a>
-    <nav class="nav-links">
-      <a href="#why" data-i18n="nav.why">为什么需要</a>
-      <a href="#principles" data-i18n="nav.principles">设计原则</a>
-      <a href="#start" data-i18n="nav.start">三步开始</a>
-      <a href="#download" data-i18n="nav.download">下载</a>
-      <a href="guide.html" data-i18n="nav.guide">使用手册</a>
-      <a href="https://github.com/turlamai/threadly" data-i18n="nav.github">GitHub</a>
-      <div class="lang-dropdown-wrapper">
-        <button class="lang-btn" type="button" aria-label="Switch language">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-          <span id="current-lang-label">English</span>
-        </button>
-        <ul class="lang-menu">
-          <li class="lang-choice"><button type="button" onclick="setLanguage('en')">English</button></li>
-          <li class="lang-choice"><button type="button" onclick="setLanguage('zh')">简体中文</button></li>
-        </ul>
-      </div>
-      <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">◐</button>
-    </nav>
-  </div>
-</header>
-
-<main>
-  <section class="hero">
-    <p class="kicker" data-i18n="kicker">原生客户端 · 登录回帖 · AI 摘要与翻译</p>
-    <h1 data-i18n="hero-title">在浏览器之外，读 Racket 社区。</h1>
-<p class="reader-en product-availability" lang="en">Development preview. Free community reader in maintenance mode under AGPL-3.0. No commercial account or paid mobile offer.</p><p class="reader-zh product-availability" lang="zh">开发预览。AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。</p>
-    <p class="lede" data-i18n="hero-lede">
-      Racket 的设计讨论、提案与生态动态都发生在 racket.discourse.group——
-      而浏览器给这些长技术帖套上了一层层外壳。Threadly 用匿名公开的 JSON
-      API 把它们带回原生窗口：论坛原色分类、帖子头像、680px 的阅读栏宽。
-    </p>
-    <div class="cta">
-      <a class="btn btn-primary" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="macos-arm64.dmg" data-i18n="hero.download">获取 Threadly</a>
-      <a class="btn btn-secondary" href="https://github.com/turlamai/threadly" data-i18n="hero.source">查看源码</a>
-    </div>
-  </section>
-
-  <section id="why" class="section">
-    <h2 data-i18n="why-title">为什么需要</h2>
-    <div class="grid three">
-      <div class="card">
-        <div class="card-icon">🪟</div>
-        <h3 data-i18n="w1-title">浏览器不是阅读器</h3>
-        <p data-i18n="w1-body">每页论坛都在加载一个 Web 应用——脚本、侧栏、层层 chrome。切个窗口，读了一半的长帖就找不到了。</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">📖</div>
-        <h3 data-i18n="w2-title">长帖配得上更好的排版</h3>
-        <p data-i18n="w2-body">关于类型系统和宏展开器的讨论动辄上百楼：680px 阅读栏宽、帖子头像、论坛原色分类，长文终于有了阅读的样子。</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">🖥️</div>
-        <h3 data-i18n="w3-title">桌面端本来就没有</h3>
-        <p data-i18n="w3-body">Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块，且与产品线一样全平台。</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="principles" class="section alt">
-    <h2 data-i18n="principles-title">设计原则</h2>
-    <div class="grid two">
-      <div class="card">
-        <h3 data-i18n="p1-title">论坛是唯一事实源</h3>
-        <p data-i18n="p1-body">Threadly 只缓存、不分叉：编辑、删除、挪版永远以论坛为准，每个帖子都能一键跳回原链。</p>
-      </div>
-      <div class="card">
-        <h3 data-i18n="p2-title">做好公民</h3>
-        <p data-i18n="p2-body">只打公开端点，响应全部落盘缓存并带 TTL，请求带身份标识的 User-Agent，收到 429 老实退避。</p>
-      </div>
-      <div class="card">
-        <h3 data-i18n="p3-title">凭据留在本机</h3>
-        <p data-i18n="p3-body">匿名即可读；登录走 Discourse user API key 流，凭据只存本机——回帖、点赞、通知不经过任何第三方。</p>
-      </div>
-      <div class="card">
-        <h3 data-i18n="p4-title">长文优先</h3>
-        <p data-i18n="p4-body">阅读体验就是产品本身；要移除的恰恰是层层 chrome。Racket 引擎 + 第一方原生 UI，没有 WebView 套壳的网页应用。</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="start" class="section">
-    <h2 data-i18n="start-title">三步开始</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div>
-          <h3 data-i18n="s1-title">下载安装</h3>
-          <p data-i18n="s1-body">macOS 拖进应用程序文件夹即可——不注册也能读，没有遥测。</p>
+    <header class="kit-nav">
+        <div class="kit-container kit-nav-inner">
+            <a class="kit-brand" href="/">
+                <svg class="kit-brand-mark" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="115" fill="#D97757"/><path d="M140 186 h232 M140 256 h172 M140 326 h232" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round"/></svg>
+                <span>Threadly</span>
+            </a>
+            <nav class="kit-nav-links">
+                <a href="#why" data-i18n="nav.why">为什么需要</a>
+                <a href="#principles" data-i18n="nav.principles">设计原则</a>
+                <a href="#start" data-i18n="nav.start">三步开始</a>
+                <a href="#download" data-i18n="nav.download">下载</a>
+                <a href="guide.html" data-i18n="nav.guide">使用手册</a>
+                <a href="https://github.com/turlamai/threadly" data-i18n="nav.github">GitHub</a>
+            </nav>
+            <div class="kit-nav-actions">
+                <div class="kit-lang">
+                    <button class="kit-lang-btn" type="button" aria-haspopup="true" aria-expanded="false">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c-4.6 4-4.6 8.4 0 12.4 4.6-4 4.6-8.4 0-12.4z"/></svg>
+                        <span class="kit-lang-current">简体中文</span>
+                    </button>
+                    <ul class="kit-lang-menu">
+                        <li><button type="button" data-kit-lang="zh">简体中文</button></li>
+                        <li><button type="button" data-kit-lang="en">English</button></li>
+                    </ul>
+                </div>
+                <button class="kit-icon-btn kit-theme-toggle" type="button" aria-pressed="false" aria-label="Theme">
+                    <svg class="kit-icon-sun" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="4"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4 4l1.4 1.4M14.6 14.6L16 16M16 4l-1.4 1.4M5.4 14.6L4 16"/></svg>
+                    <svg class="kit-icon-moon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z"/></svg>
+                </button>
+            </div>
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div>
-          <h3 data-i18n="s2-title">浏览最新</h3>
-          <p data-i18n="s2-body">侧栏按分类原色列出论坛最新主题，回复、浏览与点赞一目了然；所有响应落盘缓存，重复打开不重复请求。</p>
+    </header>
+
+    <main>
+        <!-- Hero -->
+        <section class="kit-hero">
+            <div class="kit-container">
+                <span class="kit-eyebrow" data-i18n="kicker">原生客户端 · 登录回帖 · AI 摘要与翻译</span>
+                <h1 data-i18n="hero-title">在浏览器之外，读 Racket 社区。</h1>
+                <p class="kit-text-2 tl-availability" data-i18n="hero.availability">开发预览。AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。</p>
+                <p class="kit-lead" data-i18n="hero-lede">Racket 的设计讨论、提案与生态动态都发生在 racket.discourse.group——而浏览器给这些长技术帖套上了一层层外壳。Threadly 用匿名公开的 JSON API 把它们带回原生窗口：论坛原色分类、帖子头像、680px 的阅读栏宽。</p>
+                <div class="kit-btn-row">
+                    <div class="kit-dl">
+                        <a class="kit-btn kit-btn--primary" data-kit-dl-primary href="https://github.com/turlamai/threadly/releases/latest">
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M10 2.5v10M6 9l4 4 4-4M3.5 16.5h13"/></svg>
+                            <span class="kit-dl-label" data-i18n="dl.generic">获取 Threadly</span>
+                        </a>
+                        <button class="kit-dl-caret" type="button" aria-haspopup="true" aria-expanded="false" aria-label="All platforms">
+                            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 5.5L7 9.5l4-4"/></svg>
+                        </button>
+                        <ul class="kit-dl-menu">
+                            <li><a href="https://github.com/turlamai/threadly/releases/latest" data-kit-dl="mac"><span class="kit-dl-os" data-i18n="dl.mac">macOS 版</span><span class="kit-dl-kind">.dmg</span></a></li>
+                            <li><a href="https://github.com/turlamai/threadly/releases/latest" data-kit-dl="win"><span class="kit-dl-os" data-i18n="dl.win">Windows 版</span><span class="kit-dl-kind">.msi</span></a></li>
+                            <li><a href="https://github.com/turlamai/threadly/releases/latest" data-kit-dl="linux"><span class="kit-dl-os" data-i18n="dl.linux">Linux 版</span><span class="kit-dl-kind">.AppImage</span></a></li>
+                            <li class="kit-dl-note kit-hidden" data-kit-dl-note data-i18n="dl.note">当前平台请前往 Releases 页面选取对应安装包。</li>
+                        </ul>
+                    </div>
+                    <a class="kit-btn kit-btn--secondary" href="https://github.com/turlamai/threadly" data-i18n="hero.source">查看源码</a>
+                </div>
+                <p class="kit-hero-meta"><span class="kit-badge" data-i18n="hero.badge">维护模式 · AGPL-3.0 · macOS / Windows / Linux</span></p>
+            </div>
+        </section>
+
+        <!-- Why -->
+        <section class="kit-section" id="why">
+            <div class="kit-container">
+                <h2 class="kit-h2" data-i18n="why-title">为什么需要</h2>
+                <div class="kit-grid kit-grid--3" style="margin-top: 44px;">
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">🪟</span>
+                        <h3 data-i18n="w1-title">浏览器不是阅读器</h3>
+                        <p data-i18n="w1-body">每页论坛都在加载一个 Web 应用——脚本、侧栏、层层 chrome。切个窗口，读了一半的长帖就找不到了。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">📖</span>
+                        <h3 data-i18n="w2-title">长帖配得上更好的排版</h3>
+                        <p data-i18n="w2-body">关于类型系统和宏展开器的讨论动辄上百楼：680px 阅读栏宽、帖子头像、论坛原色分类，长文终于有了阅读的样子。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">🖥️</span>
+                        <h3 data-i18n="w3-title">桌面端本来就没有</h3>
+                        <p data-i18n="w3-body">Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块，且与产品线一样全平台。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Principles -->
+        <section class="kit-section kit-section--alt" id="principles">
+            <div class="kit-container">
+                <h2 class="kit-h2" data-i18n="principles-title">设计原则</h2>
+                <div class="kit-grid kit-grid--2" style="margin-top: 44px;">
+                    <div class="kit-card">
+                        <h3 data-i18n="p1-title">论坛是唯一事实源</h3>
+                        <p data-i18n="p1-body">Threadly 只缓存、不分叉：编辑、删除、挪版永远以论坛为准，每个帖子都能一键跳回原链。</p>
+                    </div>
+                    <div class="kit-card">
+                        <h3 data-i18n="p2-title">做好公民</h3>
+                        <p data-i18n="p2-body">只打公开端点，响应全部落盘缓存并带 TTL，请求带身份标识的 User-Agent，收到 429 老实退避。</p>
+                    </div>
+                    <div class="kit-card">
+                        <h3 data-i18n="p3-title">凭据留在本机</h3>
+                        <p data-i18n="p3-body">匿名即可读；登录走 Discourse user API key 流，凭据只存本机——回帖、点赞、通知不经过任何第三方。</p>
+                    </div>
+                    <div class="kit-card">
+                        <h3 data-i18n="p4-title">长文优先</h3>
+                        <p data-i18n="p4-body">阅读体验就是产品本身；要移除的恰恰是层层 chrome。Racket 引擎 + 第一方原生 UI，没有 WebView 套壳的网页应用。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Get started (three steps) -->
+        <section class="kit-section" id="start">
+            <div class="kit-container">
+                <h2 class="kit-h2" data-i18n="start-title">三步开始</h2>
+                <div class="kit-steps" style="margin-top: 44px;">
+                    <div class="kit-step">
+                        <h3 data-i18n="s1-title">下载安装</h3>
+                        <p data-i18n="s1-body">macOS 拖进应用程序文件夹即可——不注册也能读，没有遥测。</p>
+                    </div>
+                    <div class="kit-step">
+                        <h3 data-i18n="s2-title">浏览最新</h3>
+                        <p data-i18n="s2-body">侧栏按分类原色列出论坛最新主题，回复、浏览与点赞一目了然；所有响应落盘缓存，重复打开不重复请求。</p>
+                    </div>
+                    <div class="kit-step">
+                        <h3 data-i18n="s3-title">搜索归档，读长帖</h3>
+                        <p data-i18n="s3-body">键盘直达全站搜索；读帖视图按阅读顺序呈现整条讨论，随时一键跳回网页原帖。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Download -->
+        <section class="kit-section kit-section--alt" id="download">
+            <div class="kit-container">
+                <h2 class="kit-h2" data-i18n="download-title">下载</h2>
+                <div class="kit-grid kit-grid--3" style="margin-top: 44px; align-items: start;">
+                    <div class="kit-card">
+                        <h3>macOS（Apple Silicon）</h3>
+                        <p data-i18n="dl-mac-arm">DMG 安装器，适配 M 系列芯片。</p>
+                        <p style="margin-top: 16px;"><a class="kit-btn kit-btn--secondary" href="https://github.com/turlamai/threadly/releases/latest" data-i18n="dl-get">下载 →</a></p>
+                    </div>
+                    <div class="kit-card">
+                        <h3>macOS（Intel）</h3>
+                        <p data-i18n="dl-mac-x64">DMG 安装器，适配 Intel 芯片。</p>
+                        <p style="margin-top: 16px;"><a class="kit-btn kit-btn--secondary" href="https://github.com/turlamai/threadly/releases/latest" data-i18n="dl-get">下载 →</a></p>
+                    </div>
+                    <div class="kit-card">
+                        <h3>Windows（x64）</h3>
+                        <p data-i18n="dl-win">MSI 安装器与便携 zip。</p>
+                        <p style="margin-top: 16px;"><a class="kit-btn kit-btn--secondary" data-kit-dl="win" href="https://github.com/turlamai/threadly/releases/latest" data-i18n="dl-get">下载 →</a></p>
+                    </div>
+                    <div class="kit-card">
+                        <h3>Linux（x64 / arm64）</h3>
+                        <p data-i18n="dl-linux">deb、rpm、AppImage、tar.gz 与便携 zip。</p>
+                        <p style="margin-top: 16px;"><a class="kit-btn kit-btn--secondary" data-kit-dl="linux" href="https://github.com/turlamai/threadly/releases/latest" data-i18n="dl-get">下载 →</a></p>
+                    </div>
+                    <div class="kit-card">
+                        <h3 data-i18n="dl-platforms-title">平台</h3>
+                        <p class="tl-platform-row">
+                            <span class="kit-chip">macOS</span>
+                            <span class="kit-chip">Windows</span>
+                            <span class="kit-chip">Linux</span>
+                            <span class="kit-chip">iOS / iPadOS / Android</span>
+                        </p>
+                        <p class="kit-text-2" style="margin-top: 14px;" data-i18n="dl-platforms-body">桌面预览附件可用；移动端暂缓。</p>
+                    </div>
+                </div>
+                <p style="text-align:center;margin-top:26px"><a href="https://github.com/turlamai/threadly/releases" data-i18n="dl.all-releases">全部版本</a></p>
+            </div>
+        </section>
+
+        <!-- Roadmap -->
+        <section class="kit-section" id="roadmap">
+            <div class="kit-container">
+                <h2 class="kit-h2" data-i18n="roadmap-title">路线图</h2>
+                <ul class="tl-roadmap">
+                    <li><strong>M1</strong><span data-i18n="rm1">Windows / Linux 原生壳（已完成，随 0.2.0 发布）</span></li>
+                    <li><strong>M2</strong><span data-i18n="rm2">登录态：Discourse user API key 流、回帖、点赞、通知（已完成，随 0.9.0 发布）</span></li>
+                    <li><strong>M3</strong><span data-i18n="rm3">阅读增值：长帖 AI 摘要、翻译（已完成，随 0.10.0 发布）</span></li>
+                    <li><strong>M4</strong><span data-i18n="rm4">移动端暂缓；尚未交付</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Get started -->
+        <section class="kit-section kit-section--alt" id="start-here">
+            <div class="kit-container">
+                <span class="kit-kicker" data-i18n="start.kicker">开始使用</span>
+                <h2 class="kit-h2" data-i18n="start.title">从一次有效使用开始。</h2>
+                <p class="kit-lead" style="margin-top: 18px;"><span class="kit-badge" data-i18n="start.status">AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。</span> <span data-i18n="start.platforms">桌面维护范围为 macOS、Windows、Linux；移动与手表客户端尚未交付。</span></p>
+                <div class="kit-steps" style="margin-top: 44px;">
+                    <div class="kit-step">
+                        <p data-i18n="start.s1.body">无需登录即可打开最新主题并阅读一篇讨论。</p>
+                    </div>
+                    <div class="kit-step">
+                        <p data-i18n="start.s2.body">搜索熟悉的短语，打开原论坛链接核对作者与最新内容。</p>
+                    </div>
+                    <div class="kit-step">
+                        <p data-i18n="start.s3.body">使用登录、回复或 AI 前，核对当前构建是否实际提供该流程，并检查凭据和服务商行为。</p>
+                    </div>
+                </div>
+                <p class="kit-text-2" style="margin-top: 30px; max-width: 74ch;"><span data-i18n="start.limits-a">登录、回复、AI 的真实状态、安全存储与打包阅读搜索验收仍在 </span><a href="https://github.com/turlamai/threadly/issues/1">#1</a><span data-i18n="start.limits-b"> 跟进。源帖编辑或删除后，本地缓存可能不同。</span></p>
+                <div class="tl-start-links">
+                    <a href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.zh-CN.md" data-en-href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.md" data-i18n="start.guide">安装、隐私与恢复</a>
+                    <a href="https://github.com/turlamai/threadly/issues" data-i18n="start.help">反馈与帮助</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="kit-footer">
+        <div class="kit-container">
+            <div class="kit-footer-grid">
+                <div>
+                    <a class="kit-brand" href="/">
+                        <svg class="kit-brand-mark" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="115" fill="#D97757"/><path d="M140 186 h232 M140 256 h172 M140 326 h232" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round"/></svg>
+                        <span>Threadly</span>
+                    </a>
+                    <p class="kit-footer-tagline" data-i18n="footer-note">Threadly 是独立客户端，与 Racket 社区和 Discourse 无隶属关系。数据始终来自公开接口。</p>
+                </div>
+                <div>
+                    <h4 data-i18n="footer.product">产品</h4>
+                    <ul>
+                        <li><a href="guide.html" data-i18n="nav.guide">使用手册</a></li>
+                        <li><a href="https://github.com/turlamai/threadly/releases" data-i18n="footer.releases">发布与更新</a></li>
+                        <li><a href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.zh-CN.md" data-en-href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.md" data-i18n="start.usage">使用与帮助</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 data-i18n="footer.family">家族</h4>
+                    <ul>
+                        <li><a href="https://jrtx.site/" data-i18n="footer.portal">全部产品</a></li>
+                        <li><a href="https://rivet.jrtx.site">Rivet</a></li>
+                        <li><a href="https://glaze.jrtx.site">Glaze</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 data-i18n="footer.legal">条款</h4>
+                    <ul>
+                        <li><a href="https://github.com/turlamai/threadly" data-i18n="nav.github">GitHub</a></li>
+                        <li><a href="https://github.com/turlamai/threadly/issues" data-i18n="footer.help">反馈</a></li>
+                        <li><a href="https://github.com/turlamai/threadly/blob/main/LICENSE" data-i18n="footer.license">源码许可</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="kit-footer-bottom">
+                <span data-i18n="footer.copyright">© 2026 TuringLambda AI · AGPL-3.0</span>
+                <span class="kit-mono">site-kit v1.0.2</span>
+            </div>
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div>
-          <h3 data-i18n="s3-title">搜索归档，读长帖</h3>
-          <p data-i18n="s3-body">键盘直达全站搜索；读帖视图按阅读顺序呈现整条讨论，随时一键跳回网页原帖。</p>
-        </div>
-      </div>
-    </div>
-  </section>
+    </footer>
 
-  <section id="download" class="section alt">
-    <h2 data-i18n="download-title">下载</h2>
-    <div class="dl-grid">
-      <a class="dl-card" data-dl="mac-arm" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="macos-arm64.dmg">
-        <h3>macOS（Apple Silicon）</h3>
-        <p data-i18n="dl-mac-arm">DMG 安装器，适配 M 系列芯片。</p>
-        <span class="btn btn-primary" data-i18n="dl-get">下载 →</span>
-      </a>
-      <a class="dl-card" data-dl="mac-x64" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="macos-x64.dmg">
-        <h3>macOS（Intel）</h3>
-        <p data-i18n="dl-mac-x64">DMG 安装器，适配 Intel 芯片。</p>
-        <span class="btn btn-primary" data-i18n="dl-get">下载 →</span>
-      </a>
-      <a class="dl-card" data-dl="win" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="windows-x64.msi">
-        <h3>Windows（x64）</h3>
-        <p data-i18n="dl-win">MSI 安装器与便携 zip。</p>
-        <span class="btn btn-primary" data-i18n="dl-get">下载 →</span>
-      </a>
-      <a class="dl-card" data-dl="linux" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="linux-x86_64.AppImage">
-        <h3>Linux（x64 / arm64）</h3>
-        <p data-i18n="dl-linux">deb、rpm、AppImage、tar.gz 与便携 zip。</p>
-        <span class="btn btn-primary" data-i18n="dl-get">下载 →</span>
-      </a>
-      <div class="dl-card">
-        <h3 data-i18n="dl-platforms-title">平台</h3>
-        <p class="platform-row">
-          <span class="chip ok">macOS</span>
-          <span class="chip ok">Windows</span>
-          <span class="chip ok">Linux</span>
-          <span class="chip">iOS / iPadOS / Android</span>
-        </p>
-        <p class="muted" data-i18n="dl-platforms-body">
-          桌面预览附件可用；移动端暂缓。
-        </p>
-      </div>
-    </div>
-    <p style="text-align:center;margin-top:18px"><a href="https://github.com/turlamai/threadly/releases" data-i18n="dl.all-releases">全部版本</a></p>
-  </section>
-
-  <section class="section">
-    <h2 data-i18n="roadmap-title">路线图</h2>
-    <ul>
-      <li><strong>M1</strong> — <span data-i18n="rm1">Windows / Linux 原生壳（已完成，随 0.2.0 发布）</span></li>
-      <li><strong>M2</strong> — <span data-i18n="rm2">登录态：Discourse user API key 流、回帖、点赞、通知（已完成，随 0.9.0 发布）</span></li>
-      <li><strong>M3</strong> — <span data-i18n="rm3">阅读增值：长帖 AI 摘要、翻译（已完成，随 0.10.0 发布）</span></li>
-      <li><strong>M4</strong> — <span data-i18n="rm4">移动端暂缓；尚未交付</span></li>
-    </ul>
-  </section>
-<section id="start-here" class="product-start" aria-label="Get started / 开始使用">
-<h2 class="reader-en " lang="en">Start with one useful session.</h2><h2 class="reader-zh " lang="zh">从一次有效使用开始。</h2><p class="reader-en start-status" lang="en">Free community reader in maintenance mode under AGPL-3.0. No commercial account or paid mobile offer.</p><p class="reader-zh start-status" lang="zh">AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。</p><p class="reader-en " lang="en">Desktop maintenance scope: macOS, Windows and Linux. Mobile and watch clients are not current deliveries.</p><p class="reader-zh " lang="zh">桌面维护范围为 macOS、Windows、Linux；移动与手表客户端尚未交付。</p><div class="product-start-grid"><article><h3 class="reader-en " lang="en">01</h3><h3 class="reader-zh " lang="zh">01</h3><p class="reader-en " lang="en">Open the latest topics without signing in and read one thread.</p><p class="reader-zh " lang="zh">无需登录即可打开最新主题并阅读一篇讨论。</p></article><article><h3 class="reader-en " lang="en">02</h3><h3 class="reader-zh " lang="zh">02</h3><p class="reader-en " lang="en">Search a known phrase and follow the original forum link to confirm attribution and current content.</p><p class="reader-zh " lang="zh">搜索熟悉的短语，打开原论坛链接核对作者与最新内容。</p></article><article><h3 class="reader-en " lang="en">03</h3><h3 class="reader-zh " lang="zh">03</h3><p class="reader-en " lang="en">If using login, replies or AI, check that the selected build actually provides the flow and review its credential/provider behavior first.</p><p class="reader-zh " lang="zh">使用登录、回复或 AI 前，核对当前构建是否实际提供该流程，并检查凭据和服务商行为。</p></article></div><p class="reader-en start-limits" lang="en">Login/reply/AI status, secure storage and packaged reading/search qualification remain tracked in <a href="https://github.com/turlamai/threadly/issues/1">#1</a>. Cached content may differ from edited/deleted source posts.</p><p class="reader-zh start-limits" lang="zh">登录、回复、AI 的真实状态、安全存储与打包阅读搜索验收仍在 <a href="https://github.com/turlamai/threadly/issues/1">#1</a> 跟进。源帖编辑或删除后，本地缓存可能不同。</p><div class="start-links"><a class="reader-en" lang="en" href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.md">Installation, privacy &amp; recovery</a><a class="reader-zh" lang="zh" href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.zh-CN.md">安装、隐私与恢复</a><a href="https://github.com/turlamai/threadly/issues"><span class="reader-en " lang="en">Get help</span><span class="reader-zh " lang="zh">反馈与帮助</span></a></div>
-</section>
-</main>
-
-<footer>
-  <span>AGPL-3.0 · <a href="https://github.com/turlamai/threadly">github.com/turlamai/threadly</a></span>
-  <span data-i18n="footer-note">Threadly 是独立客户端，与 Racket 社区和 Discourse 无隶属关系。数据始终来自公开接口。</span>
-</footer>
-<nav id="product-support" aria-label="Support / 支持"><a href="https://github.com/turlamai/threadly/issues"><span class="support-zh">反馈</span><span class="support-en" lang="en">Feedback</span></a> <a href="https://github.com/turlamai/threadly/releases"><span class="support-zh">发布与更新</span><span class="support-en" lang="en">Releases</span></a> <a href="https://github.com/turlamai/threadly/blob/main/LICENSE"><span class="support-zh">源码许可</span><span class="support-en" lang="en">Source license</span></a> <a class="support-zh" href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.zh-CN.md">使用与帮助</a> <a class="support-en" lang="en" href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.md">Usage & help</a></nav>
-
-<script>
-  // Select the platform and resolve the exact stable tag's asset. Draft
-  // releases never become direct-download targets before acceptance.
-  (function () {
-    var page = 'https://github.com/turlamai/threadly/releases/latest';
-    var ua = navigator.userAgent;
-    var os = /Windows/i.test(ua) ? 'win' : (/Mac|iPhone|iPad/i.test(ua) ? 'mac' : (/Linux|X11/i.test(ua) ? 'linux' : 'mac'));
-    var arch = os === 'linux' && /aarch64|arm/i.test(ua) ? 'arm64' : (os === 'linux' ? 'x64' : 'arm64');
-    var release = null;
-    var style = document.createElement('style');
-    style.textContent = '.dl-card.current{outline:2px solid var(--accent,#0f766e);outline-offset:2px}';
-    document.head.appendChild(style);
-    var heroes = document.querySelectorAll('a[data-i18n="hero.download"]');
-    heroes.forEach(function (a) { a.setAttribute('data-i18n', 'hero.download-' + os); });
-    function resolve() {
-      var suffix = {mac: 'macos-' + arch + '.dmg', win: 'windows-x64.msi',
-                    linux: 'linux-' + (arch === 'x64' ? 'x86_64' : 'aarch64') + '.AppImage'}[os];
-      heroes.forEach(function (a) { a.dataset.releaseSuffix = suffix; });
-      var linux = document.querySelector('a.dl-card[data-dl="linux"]');
-      if (linux) linux.dataset.releaseSuffix = 'linux-' + (arch === 'x64' ? 'x86_64' : 'aarch64') + '.AppImage';
-      var active = {mac: arch === 'x64' ? 'mac-x64' : 'mac-arm', win: 'win', linux: 'linux'}[os];
-      document.querySelectorAll('a.dl-card[data-dl]').forEach(function (a) {
-        a.classList.toggle('current', a.getAttribute('data-dl') === active);
-      });
-      document.querySelectorAll('a[data-release-suffix]').forEach(function (a) {
-        a.href = page;
-        if (!release || release.draft || release.prerelease ||
-            !/^v[0-9]+\.[0-9]+\.[0-9]+$/.test(release.tag_name)) return;
-        var name = 'threadly-' + release.tag_name.slice(1) + '-' + a.dataset.releaseSuffix;
-        var exact = 'https://github.com/turlamai/threadly/releases/download/' + release.tag_name + '/' + name;
-        if ((release.assets || []).some(function (x) {
-          return x.name === name && x.size > 0 && x.browser_download_url === exact;
-        })) a.href = exact;
-      });
+    <script type="application/json" id="kit-i18n">
+    {
+        "zh": {
+            "nav.why": "为什么需要", "nav.principles": "设计原则", "nav.start": "三步开始", "nav.download": "下载", "nav.guide": "使用手册", "nav.github": "GitHub",
+            "kicker": "原生客户端 · 登录回帖 · AI 摘要与翻译",
+            "hero-title": "在浏览器之外，读 Racket 社区。",
+            "hero.availability": "开发预览。AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。",
+            "hero-lede": "Racket 的设计讨论、提案与生态动态都发生在 racket.discourse.group——而浏览器给这些长技术帖套上了一层层外壳。Threadly 用匿名公开的 JSON API 把它们带回原生窗口：论坛原色分类、帖子头像、680px 的阅读栏宽。",
+            "hero.badge": "维护模式 · AGPL-3.0 · macOS / Windows / Linux",
+            "hero.source": "查看源码",
+            "dl.generic": "获取 Threadly",
+            "dl.mac": "macOS 版", "dl.win": "Windows 版", "dl.linux": "Linux 版",
+            "dl.note": "当前平台请前往 Releases 页面选取对应安装包。",
+            "why-title": "为什么需要",
+            "w1-title": "浏览器不是阅读器",
+            "w1-body": "每页论坛都在加载一个 Web 应用——脚本、侧栏、层层 chrome。切个窗口，读了一半的长帖就找不到了。",
+            "w2-title": "长帖配得上更好的排版",
+            "w2-body": "关于类型系统和宏展开器的讨论动辄上百楼：680px 阅读栏宽、帖子头像、论坛原色分类，长文终于有了阅读的样子。",
+            "w3-title": "桌面端本来就没有",
+            "w3-body": "Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块，且与产品线一样全平台。",
+            "principles-title": "设计原则",
+            "p1-title": "论坛是唯一事实源",
+            "p1-body": "Threadly 只缓存、不分叉：编辑、删除、挪版永远以论坛为准，每个帖子都能一键跳回原链。",
+            "p2-title": "做好公民",
+            "p2-body": "只打公开端点，响应全部落盘缓存并带 TTL，请求带身份标识的 User-Agent，收到 429 老实退避。",
+            "p3-title": "凭据留在本机",
+            "p3-body": "匿名即可读；登录走 Discourse user API key 流，凭据只存本机——回帖、点赞、通知不经过任何第三方。",
+            "p4-title": "长文优先",
+            "p4-body": "阅读体验就是产品本身；要移除的恰恰是层层 chrome。Racket 引擎 + 第一方原生 UI，没有 WebView 套壳的网页应用。",
+            "start-title": "三步开始",
+            "s1-title": "下载安装",
+            "s1-body": "macOS 拖进应用程序文件夹即可——不注册也能读，没有遥测。",
+            "s2-title": "浏览最新",
+            "s2-body": "侧栏按分类原色列出论坛最新主题，回复、浏览与点赞一目了然；所有响应落盘缓存，重复打开不重复请求。",
+            "s3-title": "搜索归档，读长帖",
+            "s3-body": "键盘直达全站搜索；读帖视图按阅读顺序呈现整条讨论，随时一键跳回网页原帖。",
+            "download-title": "下载",
+            "dl-mac-arm": "DMG 安装器，适配 M 系列芯片。",
+            "dl-mac-x64": "DMG 安装器，适配 Intel 芯片。",
+            "dl-win": "MSI 安装器与便携 zip。",
+            "dl-linux": "deb、rpm、AppImage、tar.gz 与便携 zip。",
+            "dl-get": "下载 →",
+            "dl.all-releases": "全部版本",
+            "dl-platforms-title": "平台",
+            "dl-platforms-body": "桌面预览附件可用；移动端暂缓。",
+            "roadmap-title": "路线图",
+            "rm1": "Windows / Linux 原生壳（已完成，随 0.2.0 发布）",
+            "rm2": "登录态：Discourse user API key 流、回帖、点赞、通知（已完成，随 0.9.0 发布）",
+            "rm3": "阅读增值：长帖 AI 摘要、翻译（已完成，随 0.10.0 发布）",
+            "rm4": "移动端暂缓；尚未交付",
+            "start.kicker": "开始使用",
+            "start.title": "从一次有效使用开始。",
+            "start.status": "AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。",
+            "start.platforms": "桌面维护范围为 macOS、Windows、Linux；移动与手表客户端尚未交付。",
+            "start.s1.body": "无需登录即可打开最新主题并阅读一篇讨论。",
+            "start.s2.body": "搜索熟悉的短语，打开原论坛链接核对作者与最新内容。",
+            "start.s3.body": "使用登录、回复或 AI 前，核对当前构建是否实际提供该流程，并检查凭据和服务商行为。",
+            "start.limits-a": "登录、回复、AI 的真实状态、安全存储与打包阅读搜索验收仍在 ",
+            "start.limits-b": " 跟进。源帖编辑或删除后，本地缓存可能不同。",
+            "start.guide": "安装、隐私与恢复",
+            "start.help": "反馈与帮助",
+            "start.usage": "使用与帮助",
+            "footer-note": "Threadly 是独立客户端，与 Racket 社区和 Discourse 无隶属关系。数据始终来自公开接口。",
+            "footer.product": "产品", "footer.family": "家族", "footer.legal": "条款",
+            "footer.releases": "发布与更新", "footer.portal": "全部产品", "footer.license": "源码许可",
+            "footer.help": "反馈",
+            "footer.copyright": "© 2026 TuringLambda AI · AGPL-3.0"
+        },
+        "en": {
+            "nav.why": "Why", "nav.principles": "Principles", "nav.start": "Get started", "nav.download": "Download", "nav.guide": "User guide", "nav.github": "GitHub",
+            "kicker": "native client · sign in to reply · AI summaries & translation",
+            "hero-title": "Read the Racket community, outside the browser.",
+            "hero.availability": "Development preview. Free community reader in maintenance mode under AGPL-3.0. No commercial account or paid mobile offer.",
+            "hero-lede": "Racket's design discussions, proposals and ecosystem news live on racket.discourse.group — and the browser wraps those long technical threads in layer after layer of chrome. Threadly brings them back to a native window over the anonymous public JSON API: forum-authentic category colors, post avatars, a 680px reading column.",
+            "hero.badge": "Maintenance mode · AGPL-3.0 · macOS / Windows / Linux",
+            "hero.source": "View source",
+            "dl.generic": "Get Threadly",
+            "dl.mac": "For macOS", "dl.win": "For Windows", "dl.linux": "For Linux",
+            "dl.note": "Pick the right package from the Releases page for your platform.",
+            "why-title": "Why Threadly",
+            "w1-title": "A browser is not a reader",
+            "w1-body": "Every forum page loads a whole web app — scripts, sidebars, chrome. Switch windows once, and the thread you were halfway through is gone.",
+            "w2-title": "Long threads deserve better type",
+            "w2-body": "Discussions about type systems and macro expanders run hundreds of posts deep: a 680px reading column, post avatars, forum-authentic category chips — long-form finally reads like long-form.",
+            "w3-title": "There was no desktop client",
+            "w3-body": "Discourse ships official iOS and Android apps only; desktop users get a URL. Threadly fills that gap, and goes full-platform like the rest of the line.",
+            "principles-title": "Design principles",
+            "p1-title": "The forum is the source of truth",
+            "p1-body": "Threadly caches, it never forks: edits, deletions and topic moves always win, and every thread links back to the web.",
+            "p2-title": "A good citizen",
+            "p2-body": "Public endpoints only, every response cached on disk with a TTL, an identifying User-Agent on every request, and a 429 honored rather than retried into the ground.",
+            "p3-title": "Credentials stay local",
+            "p3-body": "Reading is anonymous; sign-in uses the Discourse user API key flow and the key authenticates directly to the forum — replies, likes and notifications without a middleman.",
+            "p4-title": "Long-form first",
+            "p4-body": "The reading experience is the product; the chrome is the thing being removed. A Racket engine behind first-party native UI — not a web app in a box.",
+            "start-title": "Get started in three steps",
+            "s1-title": "Download and install",
+            "s1-body": "Drag Threadly to Applications on macOS — read without an account, no telemetry.",
+            "s2-title": "Browse the latest",
+            "s2-body": "The sidebar lists fresh forum topics with category colors at a glance; every response is cached on disk, so re-opening never re-hits the forum.",
+            "s3-title": "Search the archive, read threads",
+            "s3-body": "Keyboard-first full-archive search; the thread view renders a whole discussion in reading order, with a one-click jump back to the web.",
+            "download-title": "Download",
+            "dl-mac-arm": "DMG installer for Apple Silicon.",
+            "dl-mac-x64": "DMG installer for Intel Macs.",
+            "dl-win": "MSI installer and portable zip.",
+            "dl-linux": "deb, rpm, AppImage, tar.gz and portable zip for x64 and arm64.",
+            "dl-get": "Download →",
+            "dl.all-releases": "All releases",
+            "dl-platforms-title": "Platforms",
+            "dl-platforms-body": "Desktop preview assets are available; mobile is deferred.",
+            "roadmap-title": "Roadmap",
+            "rm1": "Windows / Linux native hosts (done; shipped with 0.2.0)",
+            "rm2": "Signed-in mode: Discourse user API key flow, replies, likes, notifications (done; shipped with 0.9.0)",
+            "rm3": "Reading value-add: AI thread summaries, translation (done; shipped with 0.10.0)",
+            "rm4": "Mobile deferred; no current delivery",
+            "start.kicker": "Get started",
+            "start.title": "Start with one useful session.",
+            "start.status": "Free community reader in maintenance mode under AGPL-3.0. No commercial account or paid mobile offer.",
+            "start.platforms": "Desktop maintenance scope: macOS, Windows and Linux. Mobile and watch clients are not current deliveries.",
+            "start.s1.body": "Open the latest topics without signing in and read one thread.",
+            "start.s2.body": "Search a known phrase and follow the original forum link to confirm attribution and current content.",
+            "start.s3.body": "If using login, replies or AI, check that the selected build actually provides the flow and review its credential/provider behavior first.",
+            "start.limits-a": "Login/reply/AI status, secure storage and packaged reading/search qualification remain tracked in ",
+            "start.limits-b": ". Cached content may differ from edited/deleted source posts.",
+            "start.guide": "Installation, privacy & recovery",
+            "start.help": "Get help",
+            "start.usage": "Usage & help",
+            "footer-note": "Threadly is an independent client, unaffiliated with the Racket community or Discourse. Data always comes from the public API.",
+            "footer.product": "Product", "footer.family": "Family", "footer.legal": "Legal",
+            "footer.releases": "Releases", "footer.portal": "All products", "footer.license": "Source license",
+            "footer.help": "Feedback",
+            "footer.copyright": "© 2026 TuringLambda AI · AGPL-3.0"
+        }
     }
-    resolve();
-    if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
-      navigator.userAgentData.getHighEntropyValues(['architecture', 'platform']).then(function (h) {
-        if (!h || /Windows/i.test(h.platform || '')) return;
-        var a = h.architecture === 'arm' ? 'arm64' : (h.architecture === 'x86' ? 'x64' : null);
-        if (a && a !== arch) { arch = a; resolve(); }
-      }).catch(function () {});
+    </script>
+
+    <script type="application/json" id="kit-download">
+    {
+        "repo": "turlamai/threadly",
+        "assets": {
+            "mac": "threadly-{v}-macos-{arch}.dmg",
+            "win": "threadly-{v}-windows-x64.msi",
+            "linux": "threadly-{v}-linux-{arch}.AppImage"
+        },
+        "archMap": { "linux": { "x64": "x86_64", "arm64": "aarch64" } }
     }
-    fetch('https://api.github.com/repos/turlamai/threadly/releases/latest',
-          {headers: {'Accept': 'application/vnd.github+json'}})
-      .then(function (r) { if (!r.ok) throw new Error('release lookup'); return r.json(); })
-      .then(function (data) { release = data; resolve(); })
-      .catch(function () { /* Preserve the Release-page fallback. */ });
-  })();
-</script>
-<script>
-(function () {
-  var I18N = {
-    en: {
-      'nav.why': 'Why', 'nav.principles': 'Principles', 'nav.start': 'Get started',
-      'nav.download': 'Download', 'nav.guide': 'User guide', 'nav.github': 'GitHub',
-      'kicker': 'native client · sign in to reply · AI summaries & translation',
-      'hero-title': 'Read the Racket community, outside the browser.',
-      'hero-lede': "Racket's design discussions, proposals and ecosystem news live on racket.discourse.group — and the browser wraps those long technical threads in layer after layer of chrome. Threadly brings them back to a native window over the anonymous public JSON API: forum-authentic category colors, post avatars, a 680px reading column.",
-      'hero.download': 'Get Threadly', 'hero.source': 'View source',
-      'hero.download-mac': 'Download for macOS', 'hero.download-win': 'Download for Windows', 'hero.download-linux': 'Download for Linux',
-      'why-title': 'Why Threadly',
-      'w1-title': 'A browser is not a reader',
-      'w1-body': "Every forum page loads a whole web app — scripts, sidebars, chrome. Switch windows once, and the thread you were halfway through is gone.",
-      'w2-title': 'Long threads deserve better type',
-      'w2-body': "Discussions about type systems and macro expanders run hundreds of posts deep: a 680px reading column, post avatars, forum-authentic category chips — long-form finally reads like long-form.",
-      'w3-title': 'There was no desktop client',
-      'w3-body': "Discourse ships official iOS and Android apps only; desktop users get a URL. Threadly fills that gap, and goes full-platform like the rest of the line.",
-      'principles-title': 'Design principles',
-      'p1-title': 'The forum is the source of truth',
-      'p1-body': 'Threadly caches, it never forks: edits, deletions and topic moves always win, and every thread links back to the web.',
-      'p2-title': 'A good citizen',
-      'p2-body': 'Public endpoints only, every response cached on disk with a TTL, an identifying User-Agent on every request, and a 429 honored rather than retried into the ground.',
-      'p3-title': 'Credentials stay local',
-      'p3-body': 'Reading is anonymous; sign-in uses the Discourse user API key flow and the key authenticates directly to the forum — replies, likes and notifications without a middleman.',
-      'p4-title': 'Long-form first',
-      'p4-body': 'The reading experience is the product; the chrome is the thing being removed. A Racket engine behind first-party native UI — not a web app in a box.',
-      'start-title': 'Get started in three steps',
-      's1-title': 'Download and install',
-      's1-body': 'Drag Threadly to Applications on macOS — read without an account, no telemetry.',
-      's2-title': 'Browse the latest',
-      's2-body': 'The sidebar lists fresh forum topics with category colors at a glance; every response is cached on disk, so re-opening never re-hits the forum.',
-      's3-title': 'Search the archive, read threads',
-      's3-body': 'Keyboard-first full-archive search; the thread view renders a whole discussion in reading order, with a one-click jump back to the web.',
-      'download-title': 'Download',
-      'dl-mac-arm': 'DMG installer for Apple Silicon.',
-      'dl-mac-x64': 'DMG installer for Intel Macs.',
-      'dl-win': 'MSI installer and portable zip.',
-      'dl-linux': 'deb, rpm, AppImage, tar.gz and portable zip for x64 and arm64.',
-      'dl-get': 'Download →',
-      'dl.all-releases': 'All releases',
-      'dl-platforms-title': 'Platforms',
-      'dl-platforms-body': 'Desktop preview assets are available; mobile is deferred.',
-      'roadmap-title': 'Roadmap',
-      'rm1': 'Windows / Linux native hosts (done; shipped with 0.2.0)',
-      'rm2': 'Signed-in mode: Discourse user API key flow, replies, likes, notifications (done; shipped with 0.9.0)',
-      'rm3': 'Reading value-add: AI thread summaries, translation (done; shipped with 0.10.0)',
-      'rm4': 'Mobile deferred; no current delivery',
-      'footer-note': 'Threadly is an independent client, unaffiliated with the Racket community or Discourse. Data always comes from the public API.'
-    },
-    zh: {
-      'nav.why': '为什么需要', 'nav.principles': '设计原则', 'nav.start': '三步开始',
-      'nav.download': '下载', 'nav.guide': '使用手册', 'nav.github': 'GitHub',
-      'kicker': '原生客户端 · 登录回帖 · AI 摘要与翻译',
-      'hero-title': '在浏览器之外，读 Racket 社区。',
-      'hero-lede': 'Racket 的设计讨论、提案与生态动态都发生在 racket.discourse.group——而浏览器给这些长技术帖套上了一层层外壳。Threadly 用匿名公开的 JSON API 把它们带回原生窗口：论坛原色分类、帖子头像、680px 的阅读栏宽。',
-      'hero.download': '获取 Threadly', 'hero.source': '查看源码',
-      'hero.download-mac': '下载 macOS 版', 'hero.download-win': '下载 Windows 版', 'hero.download-linux': '下载 Linux 版',
-      'why-title': '为什么需要',
-      'w1-title': '浏览器不是阅读器',
-      'w1-body': '每页论坛都在加载一个 Web 应用——脚本、侧栏、层层 chrome。切个窗口，读了一半的长帖就找不到了。',
-      'w2-title': '长帖配得上更好的排版',
-      'w2-body': '关于类型系统和宏展开器的讨论动辄上百楼：680px 阅读栏宽、帖子头像、论坛原色分类，长文终于有了阅读的样子。',
-      'w3-title': '桌面端本来就没有',
-      'w3-body': 'Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块，且与产品线一样全平台。',
-      'principles-title': '设计原则',
-      'p1-title': '论坛是唯一事实源',
-      'p1-body': 'Threadly 只缓存、不分叉：编辑、删除、挪版永远以论坛为准，每个帖子都能一键跳回原链。',
-      'p2-title': '做好公民',
-      'p2-body': '只打公开端点，响应全部落盘缓存并带 TTL，请求带身份标识的 User-Agent，收到 429 老实退避。',
-      'p3-title': '凭据留在本机',
-      'p3-body': '匿名即可读；登录走 Discourse user API key 流，凭据只存本机——回帖、点赞、通知不经过任何第三方。',
-      'p4-title': '长文优先',
-      'p4-body': '阅读体验就是产品本身；要移除的恰恰是层层 chrome。Racket 引擎 + 第一方原生 UI，没有 WebView 套壳的网页应用。',
-      'start-title': '三步开始',
-      's1-title': '下载安装',
-      's1-body': 'macOS 拖进应用程序文件夹即可——不注册也能读，没有遥测。',
-      's2-title': '浏览最新',
-      's2-body': '侧栏按分类原色列出论坛最新主题，回复、浏览与点赞一目了然；所有响应落盘缓存，重复打开不重复请求。',
-      's3-title': '搜索归档，读长帖',
-      's3-body': '键盘直达全站搜索；读帖视图按阅读顺序呈现整条讨论，随时一键跳回网页原帖。',
-      'download-title': '下载',
-      'dl-mac-arm': 'DMG 安装器，适配 M 系列芯片。',
-      'dl-mac-x64': 'DMG 安装器，适配 Intel 芯片。',
-      'dl-win': 'MSI 安装器与便携 zip。',
-      'dl-linux': 'deb、rpm、AppImage、tar.gz 与便携 zip，x64 / arm64 双架构。',
-      'dl-get': '下载 →',
-      'dl.all-releases': '全部版本',
-      'dl-platforms-title': '平台',
-      'dl-platforms-body': '桌面预览附件可用；移动端暂缓。',
-      'roadmap-title': '路线图',
-      'rm1': 'Windows / Linux 原生壳（已完成，随 0.2.0 发布）',
-      'rm2': '登录态：Discourse user API key 流、回帖、点赞、通知（已完成，随 0.9.0 发布）',
-      'rm3': '阅读增值：长帖 AI 摘要、翻译（已完成，随 0.10.0 发布）',
-      'rm4': '移动端暂缓；尚未交付',
-      'footer-note': 'Threadly 是独立客户端，与 Racket 社区和 Discourse 无隶属关系。数据始终来自公开接口。'
-    }
-  };
-
-  function setLang(lang) {
-    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
-    var dict = I18N[lang];
-    document.querySelectorAll('[data-i18n]').forEach(function (el) {
-      var key = el.getAttribute('data-i18n');
-      if (dict[key]) el.textContent = dict[key];
-    });
-    document.getElementById('current-lang-label').textContent = lang === 'zh' ? '简体中文' : 'English';
-    localStorage.setItem('threadly-lang', lang);
-  }
-
-  window.setLanguage = setLang;
-
-  document.querySelector('.lang-btn').addEventListener('click', function () {
-    var menu = document.querySelector('.lang-menu');
-    menu.classList.toggle('open');
-  });
-
-  document.getElementById('theme-btn').addEventListener('click', function () {
-    var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    localStorage.setItem('threadly-theme', next);
-  });
-
-  setLang(document.documentElement.lang === 'zh-CN' ? 'zh' : 'en');
-})();
-</script>
+    </script>
 </body>
+
 </html>
