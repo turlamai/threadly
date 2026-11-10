@@ -36,7 +36,9 @@ magic.
   never re-hits the forum.
 - **Read** — a thread view built for long discussions: posts in reading
   order, rendered from the forum's own HTML, with the author and original
-  thread one click away on the web.
+  thread one click away on the web. Long threads load in batches with the
+  scroll position intact, forum links inside a post open in the app, and
+  locally tracked read state marks topics with posts past your last read.
 - **Search** — full archive search, keyboard-first.
 
 The engine speaks the anonymous public Discourse JSON API (any forum URL
@@ -61,7 +63,12 @@ plus `.json`). No account, no scraping, no private endpoints.
 Working today: the Discourse engine (latest / topic / search / categories),
 the TTL disk cache with offline fallback, a terminal CLI, and native hosts
 for macOS, Windows and Linux. Signed-in actions and BYOK AI are implemented;
-packaged workflow evidence remains a separate delivery gate.
+packaged workflow evidence remains a separate delivery gate. The forum has
+user API key issuance disabled at the moment, so sign-in actions wait on
+the forum's own policy; anonymous reading is unaffected. The 0.15.0
+reading features (batched threads, in-app link following, local read
+tracking) ship on macOS first; Windows and Linux parity is tracked in
+issues #17 and #18.
 
 - [x] M0 — Discourse engine, disk cache, CLI, macOS SwiftUI shell
 - [x] M1 — Windows and Linux native hosts

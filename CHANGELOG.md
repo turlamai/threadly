@@ -5,6 +5,49 @@ All notable changes to Threadly are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-11
+
+The anonymous reading round: with the forum's user API key issuance
+disabled by its admins, post-login features wait on the forum's own
+decision, and this release spends the effort where Threadly still
+shines — reading long threads. Engine and macOS host in this release;
+Windows and Linux host parity is queued as issues #17 and #18.
+
+### Added
+- Same-forum links inside a thread open in the app (macOS): following a
+  reference to another thread no longer bounces to the browser, and a
+  link pinning a post number loads pages until that post renders, then
+  scrolls to it. Every other link still opens externally.
+- Local read tracking (macOS): the sidebar shows an "N new" pill for
+  topics with posts beyond your last read, tracked on the device only —
+  no account involved. Reopening a thread restores the reading position,
+  paging forward through the thread if the position sits past what is
+  loaded.
+- Compact relative timestamps everywhere (macOS): list rows and post
+  meta lines show "5m / 2h / 3d", falling back to a short absolute date
+  past a week, with the full date in a tooltip.
+- Jump to bottom (macOS): a pill in the reader's trailing corner jumps
+  to the last loaded post and hides itself once you are there.
+- Thread summaries and translations now read the whole thread, not just
+  the first twenty posts; very long transcripts are cut at a documented
+  character budget with a visible truncation note instead of silently
+  dropping the tail.
+
+### Changed
+- Long threads load in batches (macOS): the one-shot blocking "Load
+  all" is replaced by a "Load more" bar that fetches about twenty posts
+  per round trip and appends them in place, so the scroll position
+  survives each batch. The engine's new `topic-posts-page` RPC backs
+  this; `topic --all` in the CLI is unchanged.
+- Reader stylesheet follows the design contract in `design/reader/`:
+  tables, quote author lines, onebox cards, and disclosure blocks
+  render properly, and secondary text uses scheme-adaptive dimming —
+  fixed grey text failed dark-mode contrast on grey fills (about 2.5:1;
+  the contract now holds 4.5:1 in both schemes).
+- The Reply toolbar entry is signed-in only (macOS): with the forum's
+  user API keys disabled, the anonymous button was a dead end. Like
+  counts and the sidebar sign-in entry stay.
+
 ## [0.14.0] - 2026-10-30
 
 The first release verified on real hardware of all three desktop
