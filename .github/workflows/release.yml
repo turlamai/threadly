@@ -289,7 +289,7 @@ jobs:
             exit 1
           }
           rm -f "$KEY_PEM"
-          awk -v header="## ${VERSION}" '
+          awk -v header="## [${VERSION}]" '
             index($0, header) == 1 {on=1; next}
             on && /^## / {exit}
             on {print}

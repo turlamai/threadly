@@ -3,7 +3,9 @@
 All notable changes to Threadly are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning is SemVer.
 
-## 0.14.0 - 2026-10-30
+## [Unreleased]
+
+## [0.14.0] - 2026-10-30
 
 The first release verified on real hardware of all three desktop
 platforms: packaged products installed and exercised on Windows, Linux
@@ -66,7 +68,7 @@ and macOS virtual machines, reading live forum data end to end.
   parse no longer embeds that payload in the error message the hosts
   surface in their status line (issue #1: secrets never reach feedback).
 
-## 0.13.0 - 2026-10-16
+## [0.13.0] - 2026-10-16
 
 Three threads converge here: likes become toggleable, the installers
 grow up, and long threads finally read to the end.
@@ -94,7 +96,7 @@ grow up, and long threads finally read to the end.
   v0.11.0 to the rivet revision that implements it
   (cb97b88ad27dc604ef235f47e8e8c040ffd0670b — main, no tag yet).
 
-## 0.12.0 - 2026-10-15
+## [0.12.0] - 2026-10-15
 
 Linux is the last host on the family update surface, and this release
 comes with one rollout note: **starting with 0.12.0, Linux AppImage
@@ -144,7 +146,7 @@ were already self-updating.
 - Invoking the CLI with no command crashed with a contract violation
   before the usage/exit-2 path could run; it now prints usage and exits 2.
 
-## 0.11.0 - 2026-10-14
+## [0.11.0] - 2026-10-14
 
 The last update-engine bypass in the family is gone: the update engine
 moves onto rivet/distribution end to end, and the macOS updater swaps its
@@ -187,7 +189,7 @@ user-visible reliability improvement.
   locations, accounts, platforms, updates, uninstall). Bilingual,
   Chinese-first.
 
-## 0.10.0 - 2026-10-13
+## [0.10.0] - 2026-10-13
 
 M3 — reading value-add: AI thread summaries and translation on every
 platform, plus the forum's like state on every post. This closes the
@@ -207,7 +209,7 @@ M2/M3 milestones; M4 (mobile) stays gated on Rivet's mobile platforms.
   bumps the count in place. (Before this, like buttons started blank on
   every open and showed no counts.)
 
-## 0.9.0 - 2026-10-13
+## [0.9.0] - 2026-10-13
 
 M2 wrap-up — the write path reaches every platform: likes everywhere,
 replies on Windows and Linux, notifications read on view.
@@ -234,7 +236,7 @@ replies on Windows and Linux, notifications read on view.
 - Thread rows carry the post id as a sixth column; the like buttons
   target it.
 
-## 0.8.0 - 2026-10-13
+## [0.8.0] - 2026-10-13
 
 M2 third slice — write: Threadly can now speak, not just read.
 
@@ -260,7 +262,7 @@ M2 third slice — write: Threadly can now speak, not just read.
 - The backend's post-create RPC returns one `(post-id post-number)` row,
   matching the row-listing shape every other endpoint uses.
 
-## 0.7.0 - 2026-10-13
+## [0.7.0] - 2026-10-13
 
 M2 second slice — notifications on every platform.
 
@@ -273,7 +275,7 @@ M2 second slice — notifications on every platform.
 - Backend RPC notifications-list plus fixtures and tests for the
   notification parser (type labels, read flags, linked topics).
 
-## 0.6.0 - 2026-10-12
+## [0.6.0] - 2026-10-12
 
 M2 first slice — signed-in mode (read): Threadly can now act as you.
 
@@ -292,13 +294,13 @@ M2 first slice — signed-in mode (read): Threadly can now act as you.
 - Tests cover keypair generation, decrypt + nonce-verify, nonce-mismatch
   rejection, and sign-out hygiene (skipped gracefully without OpenSSL 3).
 
-## 0.5.3 - 2026-10-12
+## [0.5.3] - 2026-10-12
 
 Pins the sidebar search field above the scrolling topic list — it used to
 scroll away with the list, leaving no way to search. Same pattern as the
 Windows and Linux hosts, plus an inline clear button.
 
-## 0.5.2 - 2026-10-12
+## [0.5.2] - 2026-10-12
 
 Graceful empty states: Uncategorized on the forum genuinely has zero
 topics, and the old full-sidebar overlay swallowed the whole Browse list
@@ -306,7 +308,7 @@ behind a giant No topics view. Empty categories now show a subdued inline
 note in the Topics section (Uncategorized explains the forum keeps it
 empty) and the detail pane nudges toward other categories or search.
 
-## 0.5.1 - 2026-10-12
+## [0.5.1] - 2026-10-12
 
 Fixes the macOS update download leg: the byte-by-byte bytes(from:) stream
 stalled against the GitHub CDN on some networks (it would sit at 4 MiB
@@ -314,7 +316,7 @@ forever). The artifact now downloads through a URLSession download task —
 system-managed and disk backed — and the archive is still held to the
 signed SHA-256 before anything is trusted.
 
-## 0.5.0 - 2026-10-12
+## [0.5.0] - 2026-10-12
 
 Category navigation reaches every desktop.
 
@@ -324,7 +326,7 @@ Category navigation reaches every desktop.
   per-category topic pages, with Back and Refresh respecting the current
   scope, matching the macOS sidebar.
 
-## 0.4.1 - 2026-10-12
+## [0.4.1] - 2026-10-12
 
 Fixes the macOS self-update install: the eager temp-directory cleanup ran
 while the background swap script was still moving the unpacked bundle
@@ -332,7 +334,7 @@ into place, so every install silently rolled back to the old version.
 The swap script now cleans up its own work directory after the new bundle
 is in place.
 
-## 0.4.0 - 2026-10-12
+## [0.4.0] - 2026-10-12
 
 The forum's own navigation: categories are now first-class.
 
@@ -349,7 +351,7 @@ The forum's own navigation: categories are now first-class.
   symbol, which leaked into RPC rows and failed the List(List(String))
   contract on category pages containing reply-less pinned topics.
 
-## 0.3.0 - 2026-10-12
+## [0.3.0] - 2026-10-12
 
 The hosts learn to update themselves — the release feed published since
 0.1.0 is now consumed in-app on every platform.
@@ -367,7 +369,7 @@ The hosts learn to update themselves — the release feed published since
 - Update tests driving the real captured feed through parsing and live
   signature verification.
 
-## 0.2.0 - 2026-10-12
+## [0.2.0] - 2026-10-12
 
 Windows and Linux join the family: every desktop platform ships native
 installers from this release.
@@ -384,7 +386,7 @@ installers from this release.
   sidecars, and one signed `update-manifest.json` covering macOS, Windows
   and Linux update payloads.
 
-## 0.1.0 - 2026-10-12
+## [0.1.0] - 2026-10-12
 
 First release — born in the family's 0.x era.
 
