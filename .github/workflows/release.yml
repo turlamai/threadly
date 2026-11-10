@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -19,7 +21,55 @@ env:
   RIVET_PIN: 9d766b4acab672844093204cb4845ef4ef933d2c
 
 jobs:
+  # Taskly-pattern preflight: prove the signing key matches both embedded
+  # updater trust roots before any platform build burns a runner. The
+  # publish job re-checks the secret as a second line of defense.
+  signing-preflight:
+    name: Verify update signing key before platform builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Racket CS
+        uses: Bogdanp/setup-racket@v1.15
+        with:
+          architecture: x64
+          distribution: full
+          variant: CS
+          version: '9.3'
+      - name: Install pinned Rivet (the signer)
+        run: |
+          set -euo pipefail
+          git clone https://github.com/turlamai/rivet.git "$RUNNER_TEMP/rivet"
+          git -C "$RUNNER_TEMP/rivet" checkout "$RIVET_PIN"
+          raco pkg install --auto --no-docs --name rivet --link "$RUNNER_TEMP/rivet"
+      - name: Sign a stub manifest with the release key
+        env:
+          UPDATE_ED25519_PRIVATE_KEY: ${{ secrets.UPDATE_ED25519_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${UPDATE_ED25519_PRIVATE_KEY:-}" ]]; then
+            echo "::error::UPDATE_ED25519_PRIVATE_KEY is required before release packaging"
+            exit 1
+          fi
+          # make-update-manifest.sh refuses a key that does not match the
+          # embedded Racket and macOS trust roots, and the signer validates
+          # the manifest schema — exercising it here fails the release
+          # before packaging starts. (scripts/test-release-signing.sh
+          # covers the negative case offline.)
+          TMP="$(mktemp -d)"
+          KEY_PEM="$(mktemp)"
+          trap 'rm -rf "$TMP" "$KEY_PEM"' EXIT
+          chmod 600 "$KEY_PEM"
+          printf '%s\n' "$UPDATE_ED25519_PRIVATE_KEY" > "$KEY_PEM"
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          for name in macos-arm64.zip macos-x64.zip windows-x64.zip linux-x64.tar.gz; do
+            : > "$TMP/threadly-$VERSION-$name"
+          done
+          bash scripts/make-update-manifest.sh "v$VERSION" "$TMP" "$KEY_PEM" > /dev/null
+          test -s "$TMP/update-manifest.json"
+
   macos:
+    needs: [signing-preflight]
     name: macOS (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -75,6 +125,7 @@ jobs:
           path: dist/threadly-*
 
   windows:
+    needs: [signing-preflight]
     name: Windows (x64)
     runs-on: windows-latest
     steps:
@@ -123,6 +174,7 @@ jobs:
           path: dist/threadly-*
 
   linux:
+    needs: [signing-preflight]
     name: Linux (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -279,3 +331,7 @@ jobs:
             --title "Threadly $VERSION" \
             --notes-file /tmp/notes.md \
             public/*
+      - name: Attest public artifact provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: public/*
