@@ -15,10 +15,11 @@ concurrency:
 
 env:
   # Single source of truth for the rivet pin (same value as ci.yml); every
-  # install step below references this so a bump is one edit. Pinned to a
-  # rivet main revision (no tag yet) for the branded installer experience:
-  # dmg-background layout, WiX wizard bitmaps, deb desktop refresh.
-  RIVET_PIN: 9d766b4acab672844093204cb4845ef4ef933d2c
+  # install step below references this so a bump is one edit. v0.14.0 is
+  # the first rivet release tag containing the branded installer
+  # experience this pin was cut for: dmg-background layout, WiX wizard
+  # bitmaps, deb desktop refresh.
+  RIVET_PIN: v0.14.0
 
 jobs:
   # Taskly-pattern preflight: prove the signing key matches both embedded
@@ -188,7 +189,7 @@ jobs:
       # GitHub does not allow expressions in `uses:`, so this action pin
       # stays literal — keep it in sync with RIVET_PIN above.
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@9d766b4acab672844093204cb4845ef4ef933d2c
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.14.0
       # The source-built minimal runtime ships without the packages that
       # provide `raco make` (compiler-lib) and `raco ctool` (cext-lib),
       # which `raco rivet build` drives; crypto is a rivet/distribution
