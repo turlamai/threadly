@@ -380,9 +380,7 @@ private struct TopicListRow: View {
             HStack(spacing: 8) {
                 if searchResult {
                     // search rows carry dates, not category ids
-                    Text(Self.shortDate(topic.lastPosted))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    RelativeStamp(iso: topic.lastPosted)
                     CountStrip(counts: [
                         (symbol: "bubble.right", value: topic.postsCount)
                     ])
@@ -400,16 +398,51 @@ private struct TopicListRow: View {
                         (symbol: "heart", value: topic.likeCount)
                     ])
                 }
+                Spacer(minLength: 4)
+                let fresh = store.newPostCount(for: topic)
+                if fresh > 0 {
+                    Text("\(fresh) new")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(DesignTokens.accent)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 1)
+                        .overlay(
+                            Capsule().stroke(DesignTokens.accent.opacity(0.5), lineWidth: 1)
+                        )
+                        .help("New posts since you last read this topic (tracked on this Mac)")
+                }
+                if topic.lastPosted.isEmpty == false {
+                    RelativeStamp(iso: topic.lastPosted)
+                        .help("Last reply")
+                }
             }
         }
         .padding(.vertical, 2)
     }
+}
 
-    private static func shortDate(_ iso: String) -> String {
-        guard !iso.isEmpty else { return "" }
-        let formatter = ThreadWebView.displayFormatter
-        if let date = ThreadWebView.isoFormatter.date(from: iso) {
-            return formatter.string(from: date)
+/// Compact relative timestamp ("2h", "3d"); the full date lives in the
+/// tooltip. Unparseable input passes through.
+private struct RelativeStamp: View {
+    let iso: String
+
+    var body: some View {
+        Text(Self.label(iso))
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .monospacedDigit()
+            .help(Self.fullDate(iso))
+    }
+
+    static func label(_ iso: String) -> String {
+        guard iso.isEmpty == false else { return "" }
+        return RelativeTime.format(iso)
+    }
+
+    static func fullDate(_ iso: String) -> String {
+        if let date = ThreadWebView.isoFormatter.date(from: iso)
+            ?? ThreadWebView.fallbackFormatter.date(from: iso) {
+            return ThreadWebView.displayFormatter.string(from: date)
         }
         return iso
     }
@@ -442,6 +475,11 @@ private struct NotificationListRow: View {
 
 private struct DetailView: View {
     @EnvironmentObject private var store: ThreadlyStore
+    /// Jump-to-bottom pill visibility, driven by the reader's progress
+    /// reports; the counter (not a bool) is the command channel to the
+    /// webview — each increment is one jump request.
+    @State private var readerAtBottom = false
+    @State private var jumpCounter = 0
 
     var body: some View {
         Group {
@@ -460,6 +498,9 @@ private struct DetailView: View {
                     description: Text("Pick a thread from the sidebar to read it here.")
                 )
             }
+        }
+        .onChange(of: store.selectedTopic?.id) { _, _ in
+            readerAtBottom = false
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -489,16 +530,21 @@ private struct DetailView: View {
                     .disabled(store.aiLoading)
                     .help("AI translation of this thread")
                 }
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        store.replySheetTopic = topic
-                    } label: {
-                        Label("Reply", systemImage: "text.bubble")
+                if store.signedInUser != nil {
+                    // The forum has user API keys disabled right now, so
+                    // an anonymous Reply button is a dead end: it only
+                    // appears signed in (design/reader DESIGN.md).
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            store.replySheetTopic = topic
+                        } label: {
+                            Label("Reply", systemImage: "text.bubble")
+                        }
+                        .disabled(store.replySheetTopic != nil)
                     }
-                    .disabled(store.replySheetTopic != nil)
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Link(destination: URL(string: "https://racket.discourse.group/t/\(topic.id)")!) {
+                    Link(destination: URL(string: "\(ForumIdentity.baseURL)/t/\(topic.id)")!) {
                         Label("Open on the forum", systemImage: "safari")
                     }
                 }
@@ -563,6 +609,11 @@ private struct DetailView: View {
                 )
                 Spacer()
             } else {
+                // One-shot scroll target: an in-app link's post anchor
+                // wins over the stored reading position; consumed on
+                // mount so a later revisit restores normally.
+                let anchor = store.pendingAnchor
+                    ?? store.readState.position(topic: topic.id)?.scrollAnchorPostNumber
                 ThreadWebView(
                     document: ThreadWebView.document(
                         title: topic.title,
@@ -570,9 +621,31 @@ private struct DetailView: View {
                         postsTotal: store.postsTotal,
                         signedIn: store.signedInUser != nil
                     ),
-                    store: store
+                    store: store,
+                    initialAnchor: anchor,
+                    onProgress: { _, atBottom in
+                        readerAtBottom = atBottom
+                    },
+                    jumpCounter: jumpCounter
                 )
                 .id(topic.id)
+                .overlay(alignment: .bottomTrailing) {
+                    if readerAtBottom == false {
+                        Button {
+                            jumpCounter += 1
+                        } label: {
+                            Label("Jump to bottom", systemImage: "arrow.down")
+                                .labelStyle(.titleAndIcon)
+                        }
+                        .controlSize(.small)
+                        .buttonStyle(.bordered)
+                        .tint(DesignTokens.accent)
+                        .background(.bar, in: Capsule())
+                        .padding(14)
+                        .help("Jump to the last loaded post")
+                    }
+                }
+                .onAppear { store.pendingAnchor = nil }
             }
         }
     }
@@ -582,13 +655,22 @@ private struct DetailView: View {
 
 /// The whole thread renders as one HTML document in a single WKWebView —
 /// the forum's own cooked HTML with a reader stylesheet, light and dark.
-/// The like button rides a script-message bridge: JS posts "like:<id>"
-/// or "unlike:<id>", the host runs the RPC, and the result is applied
-/// back with threadlyLikeSettled() so the button always reflects the
-/// server.
+/// Script bridges over the "threadly" message channel: like/unlike
+/// buttons, "loadmore:" batches, and "progress:" reading-position
+/// reports. Same-forum topic links stay in the app (LinkRouter); every
+/// other link opens in the user's browser.
 struct ThreadWebView: NSViewRepresentable {
     let document: String
     let store: ThreadlyStore?
+    /// Post number to scroll to once the document loads (a pending
+    /// anchor from a link click, else the stored reading position).
+    let initialAnchor: Int?
+    /// Reports (top-visible post number, at-bottom) from the reader's
+    /// scroll listener, for the jump-to-bottom pill's visibility.
+    var onProgress: ((Int, Bool) -> Void)?
+    /// Monotonic jump-to-bottom request counter; each increment is one
+    /// jump (the pill cannot reach the webview any other way).
+    let jumpCounter: Int
 
     func makeNSView(context: Context) -> WKWebView {
         let view = WKWebView()
@@ -597,6 +679,8 @@ struct ThreadWebView: NSViewRepresentable {
         view.navigationDelegate = context.coordinator
         context.coordinator.view = view
         context.coordinator.store = store
+        context.coordinator.onProgress = onProgress
+        context.coordinator.pendingAnchorJump = initialAnchor
         view.configuration.userContentController.add(context.coordinator, name: "threadly")
         return view
     }
@@ -604,7 +688,13 @@ struct ThreadWebView: NSViewRepresentable {
     func updateNSView(_ view: WKWebView, context: Context) {
         if context.coordinator.lastLoaded != document {
             context.coordinator.lastLoaded = document
-            view.loadHTMLString(document, baseURL: URL(string: "https://racket.discourse.group"))
+            context.coordinator.renderedCount = store?.posts.count ?? 0
+            context.coordinator.highestLoadedPostNumber = store?.posts.last?.number ?? 0
+            view.loadHTMLString(document, baseURL: URL(string: ForumIdentity.baseURL))
+        }
+        if context.coordinator.lastJumpCounter != jumpCounter {
+            context.coordinator.lastJumpCounter = jumpCounter
+            view.evaluateJavaScript("threadlyJumpToBottom()", completionHandler: nil)
         }
     }
 
@@ -615,17 +705,62 @@ struct ThreadWebView: NSViewRepresentable {
         var lastLoaded: String?
         weak var view: WKWebView?
         var store: ThreadlyStore?
-        var loadAllInFlight = false
+        var onProgress: ((Int, Bool) -> Void)?
+        var lastJumpCounter = 0
+        var loadMoreInFlight = false
+        /// How many posts the document currently renders (the first
+        /// chunk plus appended batches) — the cursor for the next page.
+        var renderedCount = 0
+        /// Highest post number rendered so far; batches drop anything
+        /// at or below it so a raced page can never duplicate a post.
+        var highestLoadedPostNumber = 0
+        /// Post number the reader should sit on (a link-click anchor or
+        /// a restored reading position); cleared once reached.
+        var pendingAnchorJump: Int?
+        /// Deepest progress seen this visit — the read mark.
+        private var deepestSeenPostNumber = 0
 
-        /// Links should open in the user's browser, not navigate the reader.
+        /// Same-forum topic links stay in the app; everything else goes
+        /// to the user's browser. The reader itself never navigates.
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                      decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
             if navigationAction.navigationType == .linkActivated,
                let url = navigationAction.request.url {
-                NSWorkspace.shared.open(url)
+                switch LinkRouter.route(url) {
+                case .external:
+                    NSWorkspace.shared.open(url)
+                case .topic(let id, let postNumber):
+                    store?.openForumTopicLink(id: id, postNumber: postNumber)
+                }
                 decisionHandler(.cancel)
             } else {
                 decisionHandler(.allow)
+            }
+        }
+
+        /// First load finished: scroll to the explicit anchor if one was
+        /// handed in, else restore the stored reading position. Either
+        /// way it pages forward until the target post renders.
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation) {
+            let target = pendingAnchorJump ?? store.flatMap { store in
+                store.readState.position(topic: store.selectedTopic?.id ?? 0)?
+                    .scrollAnchorPostNumber
+            }
+            guard let target, target > 1 else { return }
+            scrollToOrPage(target)
+        }
+
+        /// Scroll to `target`, paging the thread forward until the post
+        /// renders; gives up silently at the thread end (deleted post,
+        /// bad link) instead of spinning.
+        private func scrollToOrPage(_ target: Int) {
+            pendingAnchorJump = target
+            view?.evaluateJavaScript("threadlyScrollTo(\(target))") { present, _ in
+                if (present as? Bool) == true {
+                    self.pendingAnchorJump = nil
+                } else if self.loadMorePosts() == false {
+                    self.pendingAnchorJump = nil
+                }
             }
         }
 
@@ -635,8 +770,17 @@ struct ThreadWebView: NSViewRepresentable {
             Task { @MainActor in
                 guard message.name == "threadly",
                       let text = message.body as? String else { return }
-                if text == "loadall:" {
-                    self.loadWholeThread()
+                if text == "loadmore:" {
+                    self.loadMorePosts()
+                    return
+                }
+                if text.hasPrefix("progress:") {
+                    // progress:<top-visible-post-number>:<at-bottom 0|1>
+                    let parts = text.dropFirst("progress:".count).split(separator: ":")
+                    if let n = parts.first.flatMap({ Int($0) }) {
+                        self.noteProgress(top: n,
+                                          atBottom: parts.count > 1 && parts[1] == "1")
+                    }
                     return
                 }
                 // the button's own class is the direction: a click on a
@@ -664,47 +808,86 @@ struct ThreadWebView: NSViewRepresentable {
             }
         }
 
-        /// Fetches every post of the open thread and appends the ones the
-        /// page has not rendered yet. The page keeps its scroll because
-        /// only the tail moves; the store's published posts stay as they
-        /// were on purpose.
+        /// Reading position bookkeeping from the reader's scroll
+        /// listener: the deepest post seen becomes the read mark (the
+        /// store guards forward-only), the viewport-top post is the
+        /// restore anchor, and the pill visibility rides along.
+        private func noteProgress(top: Int, atBottom: Bool) {
+            self.onProgress?(top, atBottom)
+            deepestSeenPostNumber = max(deepestSeenPostNumber, top)
+            if let topic = store?.selectedTopic {
+                store?.readState.setScrollAnchor(topic: topic.id, postNumber: top)
+                store?.readState.markRead(topic: topic.id, upTo: deepestSeenPostNumber)
+            }
+        }
+
+        /// Appends the next batch of posts in place. Returns false when
+        /// nothing more could be fetched (thread end, error, superseded)
+        /// so the anchor loop can stop; true when a batch may be in
+        /// flight or was appended.
         @MainActor
-        func loadWholeThread() {
-            guard !loadAllInFlight, let store else { return }
-            loadAllInFlight = true
+        @discardableResult
+        func loadMorePosts() -> Bool {
+            guard !loadMoreInFlight, let store, let topic = store.selectedTopic else { return false }
+            loadMoreInFlight = true
+            view?.evaluateJavaScript("threadlyLoadMorePending(true)", completionHandler: nil)
             Task { @MainActor in
-                defer { self.loadAllInFlight = false }
-                guard let all = await store.fetchAllPosts() else { return }
-                let shown = store.posts.count
-                let tail = all.dropFirst(shown)
-                guard !tail.isEmpty else { return }
+                defer {
+                    self.loadMoreInFlight = false
+                    self.view?.evaluateJavaScript("threadlyLoadMorePending(false)",
+                                                  completionHandler: nil)
+                }
+                guard let page = await store.fetchMorePosts(
+                    topicId: topic.id,
+                    loadedCount: self.renderedCount,
+                    highestLoadedPostNumber: self.highestLoadedPostNumber)
+                else { return }
+                let (tail, total) = page
+                store.postsTotal = total
+                guard !tail.isEmpty else {
+                    // nothing new: the bar goes away for good
+                    self.view?.evaluateJavaScript("threadlyRemoveMorebar()",
+                                                  completionHandler: nil)
+                    return
+                }
                 let signedIn = store.signedInUser != nil
                 let html = tail.map { ThreadWebView.section($0, signedIn: signedIn) }
                     .joined(separator: "\n")
+                self.renderedCount += tail.count
+                self.highestLoadedPostNumber = max(self.highestLoadedPostNumber,
+                                                   tail.map(\.number).max() ?? 0)
+                let shown = self.renderedCount
                 self.view?.evaluateJavaScript(
-                    "threadlyAppendPosts(\(ThreadWebView.jsString(html)))",
+                    "threadlyAppendPosts(\(ThreadWebView.jsString(html)), \(shown), \(total))",
                     completionHandler: nil)
+                // an anchor jump may be waiting for exactly these posts
+                if let target = self.pendingAnchorJump {
+                    self.scrollToOrPage(target)
+                }
             }
+            return true
         }
     }
 
     /// The forum's cooked HTML is already sanitized server-side; this only
     /// escapes the surrounding metadata and wraps everything in a reader
-    /// stylesheet that follows the system appearance. A 680px column keeps
-    /// long paragraphs readable; avatars give each post a face. Signed in,
+    /// stylesheet that follows the system appearance (the design contract
+    /// lives in design/reader/DESIGN.md). A 680px column keeps long
+    /// paragraphs readable; avatars give each post a face. Signed in,
     /// every post grows a like button wired to the script-message bridge.
-    /// When the thread continues past these posts, a bar under the title
-    /// loads the whole thread in place (the tail is appended, so the
-    /// scroll position survives).
+    /// When the thread continues past these posts, a bar after the last
+    /// post loads the next batch in place (the tail is appended, so the
+    /// scroll position survives). Every post carries id="post-N" so link
+    /// anchors, scroll restore, and jump-to-bottom all have a target.
+    ///
+    /// The document must stay a pure function of `posts` and the open-
+    /// time total: appended batches never republish either, so SwiftUI
+    /// re-renders cannot reload the webview and throw the scroll away.
     static func document(title: String, posts: [PostRow], postsTotal: Int = 0,
                          signedIn: Bool = false) -> String {
         let body = posts.map { section($0, signedIn: signedIn) }.joined(separator: "\n")
-        let truncated = postsTotal > posts.count
-            ? """
-            <div class="morebar" id="threadly-morebar">Showing \(posts.count) of \(postsTotal) posts \
-            <button onclick="threadlyLoadAll()">Load all</button></div>
-            <div id="threadly-more"></div>
-            """
+        let morebar = postsTotal > posts.count
+            ? ThreadWebView.morebar(shown: posts.count, total: postsTotal)
             : ""
         return """
         <!doctype html>
@@ -721,10 +904,11 @@ struct ThreadWebView: NSViewRepresentable {
           padding: 16px 0 8px;
           border-bottom: 1px solid rgba(128,128,128,.2);
         }
-        .post:first-child { padding-top: 0; }
+        .post:first-of-type { padding-top: 0; }
         .meta {
           display: flex; align-items: center; gap: 7px;
-          font-size: 12px; color: rgba(128,128,128,.95);
+          font-size: 12px;
+          color: color-mix(in srgb, currentColor 62%, transparent);
           margin-bottom: 8px;
         }
         .avatar {
@@ -737,30 +921,32 @@ struct ThreadWebView: NSViewRepresentable {
           margin-left: auto;
           background: none; border: none; cursor: pointer;
           font-size: 15px; line-height: 1;
-          color: rgba(128,128,128,.75); padding: 2px 6px;
+          color: color-mix(in srgb, currentColor 62%, transparent);
+          padding: 2px 6px;
         }
         .meta .like:hover { color: #C15F3C; }
         .meta .like:disabled { opacity: .35; cursor: default; }
         .meta .like.liked { color: #E0413E; }
         .meta .like .count, .meta .count {
-          font-size: 12px; margin-left: 3px;
-          color: rgba(128,128,128,.95);
+          font-size: 12px; margin-left: 3px; color: inherit;
         }
         .meta .like.liked .count { color: #E0413E; }
         .morebar {
-          font-size: 12px; color: rgba(128,128,128,.95);
-          padding: 10px 0 2px; margin-bottom: 4px;
-          border-bottom: 1px solid rgba(128,128,128,.2);
+          display: flex; align-items: center; gap: 8px;
+          font-size: 12px;
+          color: color-mix(in srgb, currentColor 62%, transparent);
+          padding: 14px 0 2px;
         }
         .morebar button {
           background: none; border: 1px solid rgba(193,95,60,.55);
           border-radius: 6px; cursor: pointer;
           color: #C15F3C; font-size: 12px;
-          padding: 3px 10px; margin-left: 4px;
+          padding: 3px 12px;
         }
         .morebar button:hover { background: rgba(193,95,60,.12); }
         .morebar button:disabled { opacity: .35; cursor: default; }
         h1,h2,h3 { line-height: 1.3; }
+        p { margin: 10px 0; }
         pre, code {
           font-family: ui-monospace, "SF Mono", Menlo, monospace;
           font-size: 13px;
@@ -768,6 +954,7 @@ struct ThreadWebView: NSViewRepresentable {
         code {
           background: rgba(128,128,128,.14);
           padding: 1px 5px; border-radius: 4px;
+          overflow-wrap: anywhere;
         }
         pre {
           background: rgba(128,128,128,.12);
@@ -778,14 +965,54 @@ struct ThreadWebView: NSViewRepresentable {
         blockquote {
           margin: 8px 0; padding: 2px 14px;
           border-left: 3px solid rgba(193,95,60,.55);
-          color: rgba(128,128,128,1);
+          color: color-mix(in srgb, currentColor 78%, transparent);
         }
-        img { max-width: 100%; height: auto; border-radius: 6px; }
+        img, video { max-width: 100%; height: auto; border-radius: 6px; }
         a { color: #C15F3C; }
-        aside.quote { border-left: 3px solid rgba(193,95,60,.55); margin: 8px 0;
-          padding: 6px 12px; background: rgba(128,128,128,.08); border-radius: 6px; }
+        hr { border: none; border-top: 1px solid rgba(128,128,128,.2); margin: 20px 0; }
+        aside.quote {
+          border-left: 3px solid rgba(193,95,60,.55); margin: 10px 0;
+          padding: 6px 12px; background: rgba(128,128,128,.08); border-radius: 6px;
+        }
+        aside.quote .title {
+          font-size: 11px; font-weight: 600; letter-spacing: .06em;
+          text-transform: uppercase;
+          color: color-mix(in srgb, currentColor 60%, transparent);
+          margin-bottom: 4px;
+        }
+        aside.quote .title a { color: inherit; }
+        aside.onebox {
+          border: 1px solid rgba(128,128,128,.25); border-radius: 8px;
+          margin: 10px 0; padding: 10px 14px; overflow: hidden;
+        }
+        aside.onebox .source {
+          font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+          color: color-mix(in srgb, currentColor 60%, transparent); margin-bottom: 4px;
+        }
+        aside.onebox h4 { margin: 2px 0 4px; font-size: 15px; }
+        aside.onebox h4 a { color: #C15F3C; text-decoration: none; }
+        aside.onebox p { margin: 4px 0; font-size: 13px;
+          color: color-mix(in srgb, currentColor 72%, transparent); }
+        aside.onebox .thumbnail { float: right; margin-left: 12px; max-width: 40%; }
+        details {
+          border: 1px solid rgba(128,128,128,.25); border-radius: 8px;
+          margin: 10px 0;
+        }
+        details summary {
+          cursor: pointer; padding: 8px 12px; font-weight: 600; font-size: 13px;
+          color: #C15F3C; list-style: none;
+        }
+        details summary::-webkit-details-marker { display: none; }
+        details summary::before { content: "▸"; display: inline-block;
+          margin-right: 6px; transition: transform .15s; }
+        details[open] summary::before { transform: rotate(90deg); }
+        details .contents, details > p { padding: 2px 12px 10px; }
+        .table-scroll, .post table { overflow-x: auto; }
+        table { border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+        th, td { padding: 6px 12px; border-bottom: 1px solid rgba(128,128,128,.2); text-align: left; }
+        th { font-weight: 600; background: rgba(128,128,128,.08); }
         </style></head>
-        <body>\(truncated)\(body)
+        <body>\(body)\(morebar)
         <script>
         function threadlyLike(id) {
           var b = document.getElementById('like-' + id);
@@ -815,25 +1042,88 @@ struct ThreadWebView: NSViewRepresentable {
           b.innerHTML = (liked ? '\\u2665' : '\\u2661') +
             (count > 0 ? '<span class="count">' + count + '</span>' : '');
         }
-        function threadlyLoadAll() {
+        function threadlyLoadMore() {
           var b = document.querySelector('#threadly-morebar button');
           if (b) b.disabled = true;
-          window.webkit.messageHandlers.threadly.postMessage("loadall:");
+          window.webkit.messageHandlers.threadly.postMessage("loadmore:");
         }
-        // The tail arrives as one string of <section> posts; the mount
-        // div is swapped for it so the scroll position survives.
-        function threadlyAppendPosts(html) {
+        function threadlyLoadMorePending(busy) {
+          var b = document.querySelector('#threadly-morebar button');
+          if (b) b.disabled = busy;
+        }
+        function threadlyMorebarHtml(shown, total) {
+          if (shown >= total) return '';
+          return '<div class="morebar" id="threadly-morebar">' +
+            'Showing ' + shown + ' of ' + total + ' posts' +
+            '<button onclick="threadlyLoadMore()">Load more</button></div>';
+        }
+        // The tail arrives as one string of <section> posts; sections are
+        // inserted before the mount so the scroll position survives, and
+        // the bar re-renders with the fresh totals.
+        function threadlyAppendPosts(html, shown, total) {
           var m = document.getElementById('threadly-more');
-          if (m) m.outerHTML = html;
+          if (m) m.insertAdjacentHTML('beforebegin', html);
+          var bar = document.getElementById('threadly-morebar');
+          if (bar) bar.remove();
+          if (m) m.outerHTML = '<div id="threadly-more">' +
+            threadlyMorebarHtml(shown, total) + '</div>';
+        }
+        function threadlyRemoveMorebar() {
           var bar = document.getElementById('threadly-morebar');
           if (bar) bar.remove();
         }
+        // Scroll target for anchors, restore, and jump-to-bottom. Returns
+        // false when the post is not rendered yet, so the host knows to
+        // page forward.
+        function threadlyScrollTo(number) {
+          var el = document.getElementById('post-' + number);
+          if (!el) return false;
+          el.scrollIntoView({ block: 'start' });
+          window.scrollBy(0, -12);
+          return true;
+        }
+        function threadlyJumpToBottom() {
+          var posts = document.querySelectorAll('section.post');
+          var last = posts[posts.length - 1];
+          if (last) last.scrollIntoView({ block: 'start' });
+        }
+        // Reading position: the last post starting above the viewport top
+        // (+ small header offset) rides the scroll event, throttled, with
+        // the at-bottom flag for the host's jump pill.
+        var threadlyProgressTimer = null;
+        window.addEventListener('scroll', function () {
+          if (threadlyProgressTimer) return;
+          threadlyProgressTimer = setTimeout(function () {
+            threadlyProgressTimer = null;
+            var sections = document.querySelectorAll('section.post');
+            var top = 1;
+            for (var i = 0; i < sections.length; i++) {
+              if (sections[i].getBoundingClientRect().top <= 80) {
+                top = parseInt(sections[i].id.slice(5), 10) || top;
+              }
+            }
+            var atBottom = window.innerHeight + window.scrollY >=
+              document.body.scrollHeight - 40;
+            window.webkit.messageHandlers.threadly.postMessage(
+              'progress:' + top + ':' + (atBottom ? '1' : '0'));
+          }, 400);
+        });
         </script></body></html>
         """
     }
 
+    /// The in-document load-more bar (initial render; the JS twin is
+    /// threadlyMorebarHtml — keep the two markups identical).
+    static func morebar(shown: Int, total: Int) -> String {
+        """
+        <div class="morebar" id="threadly-morebar">Showing \(shown) of \(total) posts \
+        <button onclick="threadlyLoadMore()">Load more</button></div>
+        <div id="threadly-more"></div>
+        """
+    }
+
     /// One post: avatar + author line + like button + the forum's cooked
-    /// HTML. Shared by the initial document and the "load all" tail.
+    /// HTML. Shared by the initial document and the appended batches.
     static func section(_ post: PostRow, signedIn: Bool) -> String {
         let avatar = post.avatarURL.isEmpty
             ? ""
@@ -849,17 +1139,19 @@ struct ThreadWebView: NSViewRepresentable {
         } else if post.likeCount > 0 {
             like = "<span class=\"count\">\(post.likeCount) ♥</span>"
         }
+        let fullDate = escape(formatDate(post.createdAt))
+        let shortDate = escape(RelativeTime.format(post.createdAt))
         let meta = """
         <div class="meta">\(avatar)\
         <span class="author">\(escape(post.author))</span>\
         <span class="dot">·</span>\
         <span>#\(post.number)</span>\
         <span class="dot">·</span>\
-        <span class="date">\(escape(formatDate(post.createdAt)))</span>\
+        <span class="date" title="\(fullDate)">\(shortDate)</span>\
         \(like)
         </div>
         """
-        return "<section class=\"post\">\(meta)\(post.html)</section>"
+        return "<section class=\"post\" id=\"post-\(post.number)\">\(meta)\(post.html)</section>"
     }
 
     /// The tail travels as a JSON string literal — data for the page's
@@ -880,7 +1172,7 @@ struct ThreadWebView: NSViewRepresentable {
         return f
     }()
 
-    private static let fallbackFormatter = ISO8601DateFormatter()
+    static let fallbackFormatter = ISO8601DateFormatter()
 
     static let displayFormatter: DateFormatter = {
         let f = DateFormatter()

@@ -214,6 +214,10 @@ public struct RivetAPI: Sendable {
         let rivetResult = try await client.call("topic-posts-all", arguments: [encode_String(id)])
         return try decode__List_List_String_(rivetResult)
     }
+    public func topic_posts_page(id: String, loaded_count: Int64) async throws -> [[String]] {
+        let rivetResult = try await client.call("topic-posts-page", arguments: [encode_String(id), encode_Int64(loaded_count)])
+        return try decode__List_List_String_(rivetResult)
+    }
     public func unlike_post(post_id: String) async throws -> Bool {
         let rivetResult = try await client.call("unlike-post", arguments: [encode_String(post_id)])
         return try decode_Bool(rivetResult)
