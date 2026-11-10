@@ -74,14 +74,22 @@ jobs:
       - name: Read the rivet pin the N release was built against
         run: |
           set -euo pipefail
-          spec="$(grep -ohE "https://[^']+rivet\.git#[^']+" .github/workflows/ci.yml | head -1)"
-          test -n "$spec"
-          # the N workflows may pin through the env indirection (a
-          # "RIVET_PIN:" env block at the top) rather than a literal ref
-          if echo "$spec" | grep -qF 'env.RIVET_PIN'; then
+          spec="$(grep -ohE "https://[^']+rivet\.git#[^']+" .github/workflows/ci.yml | head -1 || true)"
+          if [ -z "$spec" ]; then
+            # the N workflow may check rivet out by ref instead of
+            # installing a tarball: the "RIVET_PIN:" env block at the top
+            # is then the pin of record
             pin="$(grep -m1 -E '^ *RIVET_PIN:' .github/workflows/ci.yml | sed -E 's/.*RIVET_PIN:[[:space:]]*//')"
             test -n "$pin"
-            spec="$(echo "$spec" | cut -d'#' -f1)#$pin"
+            spec="https://github.com/turlamai/rivet.git#$pin"
+          else
+            # the N workflows may pin through the env indirection (a
+            # "RIVET_PIN:" env block at the top) rather than a literal ref
+            if echo "$spec" | grep -qF 'env.RIVET_PIN'; then
+              pin="$(grep -m1 -E '^ *RIVET_PIN:' .github/workflows/ci.yml | sed -E 's/.*RIVET_PIN:[[:space:]]*//')"
+              test -n "$pin"
+              spec="$(echo "$spec" | cut -d'#' -f1)#$pin"
+            fi
           fi
           echo "RIVET_SPEC=$spec" >> "$GITHUB_ENV"
 
