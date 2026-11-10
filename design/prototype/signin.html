@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Threadly — Sign in</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== signin 专属：粘贴码 sheet（460px，值同 SignInSheetView）==== */
+  .sheet { width:460px; }
+  /* 匿名侧栏：无 Notifications 行；账号区 = 一键开始登录 */
+  .hint { font-size:11.5px; color:var(--mute); line-height:1.6; padding:6px 8px 0; }
+</style>
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-tray" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></symbol>
+</svg>
+<div class="window" id="app">
+  <div class="titlebar">
+    <div class="lights"><i></i><i></i><i></i></div>
+    <div class="t">Threadly</div>
+    <div class="sp"></div>
+    <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+  </div>
+  <div class="body">
+    <aside class="sidebar">
+      <div class="search"><svg><use href="#i-search"/></svg>Search the archive</div>
+      <div class="sect">BROWSE</div>
+      <nav class="nav">
+        <div class="item"><svg><use href="#i-tray"/></svg>Latest</div>
+        <div class="item"><span class="cdot" style="background:#d98e2b"></span>Announcements</div>
+        <div class="item"><span class="cdot" style="background:#2596be"></span>General</div>
+        <div class="item"><span class="cdot" style="background:#9d00ff"></span>Racket</div>
+      </nav>
+      <div class="rows"></div>
+      <!-- 未登录账号区：一键开始；浏览器打开论坛批准页后弹出本 sheet -->
+      <div class="foot"><svg><use href="#i-person"/></svg><span class="lnk">Sign in with racket.discourse</span></div>
+    </aside>
+    <section class="main">
+      <div class="view" style="opacity:.5"></div>
+      <!-- awaitingCode 态：论坛批准页已在浏览器打开；空码时主按钮禁用（防错），Esc=Cancel、⏎=Complete -->
+      <div class="scrim">
+        <div class="sheet">
+          <h2>Finish signing in</h2>
+          <div class="sub">Approve Threadly on the forum page that just opened, copy the code it shows, and paste it here.</div>
+          <div class="field"><span class="ph">Paste the code</span></div>
+          <div class="row-end">
+            <span class="sp" style="flex:1"></span>
+            <button class="btn ghost">Cancel</button>
+            <button class="btn primary disabled">Complete sign-in</button>
+          </div>
+        </div>
+      </div>
+      <div class="statusbar">
+        <span class="hint">匿名可完整浏览/搜索/阅读；登录仅解锁回复、点赞与通知（论坛当前停发 user API key，登录入口等待论坛政策）。</span>
+        <span class="sp"></span><span>原型 · ◐ 切换亮暗</span>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    document.getElementById('app').classList.toggle('dark');
+  });
+</script>
+</body>
+</html>
