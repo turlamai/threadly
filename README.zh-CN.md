@@ -58,6 +58,26 @@ Threadly 就来做这个桌面客户端,而且按 Racket 社区做事的方式:�
 - [x] M3 —— 阅读增值:帖子摘要、翻译
 - [ ] 移动端暂缓，仅在用户需求、维护能力与 Rivet 真机交付证据具备后评估，不作当前承诺。
 
+## 安装
+
+从 [Releases](https://github.com/turlamai/threadly/releases/latest) 下载。
+资产统一按 `threadly-<version>-<os>-<arch>.<ext>` 命名：
+
+| 平台 | 安装器 | 便携 / 应用内更新载荷 |
+|---|---|---|
+| macOS 14+（Apple silicon / Intel） | `threadly-<version>-macos-arm64.dmg` · `-x64.dmg` | `threadly-<version>-macos-arm64.zip` · `-x64.zip` |
+| Windows 10+ x64 | `threadly-<version>-windows-x64.msi` | `threadly-<version>-windows-x64.zip` |
+| Linux x64 / arm64 | `threadly-<version>-linux-<arch>.deb` · `.rpm` · `.AppImage` | `threadly-<version>-linux-<arch>.tar.gz`（feed 载荷） · `-linux-<arch>.zip` |
+
+每个版本都带校验过的 `SHA256SUMS`；应用内更新消费 Ed25519 签名的
+`update-manifest.json` feed（key id `threadly-2026-10`；Sigstore 溯源：
+`gh attestation verify <file> -R turlamai/threadly`）。更新行为契约见
+[docs/UPDATE.md](docs/UPDATE.md)。
+
+签名状态：macOS DMG 为 ad-hoc 签名（Gatekeeper 可能告警——右键应用选
+「打开」）；Windows MSI 与 zip 未签名（SmartScreen 可能告警）；Linux
+包无需付费发行方账号。更新元数据本身始终 Ed25519 签名并在应用前验签。
+
 ## 从源码构建
 
 ```bash

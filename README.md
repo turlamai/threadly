@@ -90,6 +90,29 @@ The key is stored 0600 in the data directory and never leaves the
 machine except to the configured endpoint. In the desktop apps, open a
 thread and use the Summarize / Translate toolbar buttons.
 
+## Install
+
+Download from [Releases](https://github.com/turlamai/threadly/releases/latest).
+Assets follow `threadly-<version>-<os>-<arch>.<ext>`:
+
+| Platform | Installers | Portable / in-app update payload |
+|---|---|---|
+| macOS 14+ (Apple silicon / Intel) | `threadly-<version>-macos-arm64.dmg` · `-x64.dmg` | `threadly-<version>-macos-arm64.zip` · `-x64.zip` |
+| Windows 10+ x64 | `threadly-<version>-windows-x64.msi` | `threadly-<version>-windows-x64.zip` |
+| Linux x64 / arm64 | `threadly-<version>-linux-<arch>.deb` · `.rpm` · `.AppImage` | `threadly-<version>-linux-<arch>.tar.gz` (the feed payload) · `-linux-<arch>.zip` |
+
+Every release carries a checked `SHA256SUMS`, and the in-app updater
+consumes the Ed25519-signed `update-manifest.json` feed (key id
+`threadly-2026-10`; Sigstore provenance: `gh attestation verify <file>
+-R turlamai/threadly`). The update behavior contract is recorded in
+[docs/UPDATE.md](docs/UPDATE.md).
+
+Package signing status: the macOS DMG is ad-hoc signed (Gatekeeper may
+warn on first launch — right-click the app and choose Open); the Windows
+MSI and zip are unsigned (SmartScreen may warn); the Linux packages
+require no paid publisher account. Update metadata itself is always
+Ed25519 signed and verified before anything is applied.
+
 ## Build from source
 
 ```bash
