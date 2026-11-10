@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threadly reader prototype — 0.15.0</title>
+<style>
+/* ============================================================
+   Threadly reader prototype (design contract: DESIGN.md)
+   This stylesheet is the near-verbatim source the three host
+   templates embed; platform diffs are font stacks + bridge name.
+   ============================================================ */
+:root { color-scheme: light dark; }
+
+/* ---- demo chrome (not part of the contract) ---- */
+.demo-banner {
+  position: sticky; top: 0; z-index: 10;
+  font-size: 12px; padding: 8px 16px; text-align: center;
+  background: rgba(193,95,60,.12); color: #C15F3C;
+  border-bottom: 1px solid rgba(193,95,60,.3);
+}
+.demo-h2 {
+  max-width: 680px; margin: 40px auto 8px; padding: 0 28px;
+  font-size: 12px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: rgba(128,128,128,.95);
+}
+
+/* ---- reader document (the contract) ---- */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+  font-size: 15px; line-height: 1.6;
+  margin: 0 auto; padding: 22px 28px 48px;
+  max-width: 680px;
+  background: transparent;
+}
+.doc-title {
+  font-size: 20px; line-height: 1.3; font-weight: 700;
+  margin: 4px 0 2px;
+}
+.post {
+  padding: 16px 0 8px;
+  border-bottom: 1px solid rgba(128,128,128,.2);
+}
+.post:first-of-type { padding-top: 12px; }
+.meta {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: color-mix(in srgb, currentColor 62%, transparent);
+  margin-bottom: 8px;
+}
+.avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  margin-right: 2px; background: rgba(128,128,128,.18);
+}
+.meta .author { font-weight: 600; color: #C15F3C; }
+.meta .dot { opacity: .45; }
+.meta .count, .like .count {
+  font-size: 12px; margin-left: 3px; color: inherit;
+}
+.like {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  font-size: 15px; line-height: 1; color: rgba(128,128,128,.75);
+  padding: 2px 6px;
+}
+.like:hover { color: #C15F3C; }
+.like.liked { color: #E0413E; }
+.like.liked .count { color: #E0413E; }
+
+/* content elements */
+h1,h2,h3 { line-height: 1.3; }
+p { margin: 10px 0; }
+pre, code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+code {
+  background: rgba(128,128,128,.14);
+  padding: 1px 5px; border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: rgba(128,128,128,.12);
+  padding: 12px 14px; border-radius: 8px;
+  overflow-x: auto;
+}
+pre code { background: none; padding: 0; }
+blockquote {
+  margin: 8px 0; padding: 2px 14px;
+  border-left: 3px solid rgba(193,95,60,.55);
+  color: color-mix(in srgb, currentColor 78%, transparent);
+}
+img, video { max-width: 100%; height: auto; border-radius: 6px; }
+a { color: #C15F3C; }
+hr {
+  border: none; border-top: 1px solid rgba(128,128,128,.2);
+  margin: 20px 0;
+}
+/* aside.quote — the forum's quote block (terracotta rail + author line) */
+aside.quote {
+  border-left: 3px solid rgba(193,95,60,.55); margin: 10px 0;
+  padding: 6px 12px; background: rgba(128,128,128,.08); border-radius: 6px;
+}
+aside.quote .title {
+  font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, currentColor 60%, transparent);
+  margin-bottom: 4px;
+}
+aside.quote .title a { color: inherit; }
+/* oneboxes — link cards the forum emits for URLs */
+aside.onebox {
+  border: 1px solid rgba(128,128,128,.25); border-radius: 8px;
+  margin: 10px 0; padding: 10px 14px; overflow: hidden;
+}
+aside.onebox .source {
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  color: color-mix(in srgb, currentColor 60%, transparent); margin-bottom: 4px;
+}
+aside.onebox h4 { margin: 2px 0 4px; font-size: 15px; }
+aside.onebox h4 a { color: #C15F3C; text-decoration: none; }
+aside.onebox p { margin: 4px 0; font-size: 13px; color: color-mix(in srgb, currentColor 72%, transparent); }
+aside.onebox .thumbnail { float: right; margin-left: 12px; max-width: 40%; }
+/* details / summary */
+details {
+  border: 1px solid rgba(128,128,128,.25); border-radius: 8px;
+  margin: 10px 0; padding: 0;
+}
+details summary {
+  cursor: pointer; padding: 8px 12px; font-weight: 600; font-size: 13px;
+  color: #C15F3C; list-style: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before { content: "▸"; display: inline-block; margin-right: 6px; transition: transform .15s; }
+details[open] summary::before { transform: rotate(90deg); }
+details .contents { padding: 2px 12px 10px; }
+/* tables — contained overflow, hairline rules */
+.table-scroll { overflow-x: auto; margin: 10px 0; }
+table {
+  border-collapse: collapse; font-size: 13px; min-width: 40%;
+}
+th, td { padding: 6px 12px; border-bottom: 1px solid rgba(128,128,128,.2); text-align: left; }
+th { font-weight: 600; background: rgba(128,128,128,.08); }
+
+/* load-more bar — after the last loaded post, mid-document */
+.morebar {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: color-mix(in srgb, currentColor 62%, transparent);
+  padding: 14px 0 2px;
+}
+.morebar button {
+  background: none; border: 1px solid rgba(193,95,60,.55);
+  border-radius: 6px; cursor: pointer; color: #C15F3C; font-size: 12px;
+  padding: 3px 12px;
+}
+.morebar button:hover { background: rgba(193,95,60,.12); }
+.morebar button:disabled { opacity: .35; cursor: default; }
+.morebar.loading button::after { content: " …"; }
+
+/* ---- app-shell treatments (native mockups for review) ---- */
+.list-demo { max-width: 680px; padding: 0 28px; }
+.row {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 11px 12px; border-radius: 8px;
+}
+.row:hover { background: rgba(128,128,128,.08); }
+.row .t {
+  font-size: 14px; font-weight: 600; flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.row .cat {
+  font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 8px;
+  background: rgba(193,95,60,.15); color: #C15F3C;
+}
+.row .n { font-size: 12px; color: color-mix(in srgb, currentColor 62%, transparent); }
+.row .when { font-size: 12px; color: color-mix(in srgb, currentColor 62%, transparent); min-width: 34px; text-align: right; }
+.row .new {
+  font-size: 11px; font-weight: 600; color: #C15F3C;
+  border: 1px solid rgba(193,95,60,.5); border-radius: 9px;
+  padding: 0 7px; line-height: 16px;
+}
+.row .unread-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #C15F3C; flex: none; align-self: center;
+}
+.jump-demo {
+  position: fixed; right: 26px; bottom: 26px;
+  font-size: 12px; color: #C15F3C;
+  border: 1px solid rgba(193,95,60,.55); border-radius: 14px;
+  padding: 5px 14px; background: transparent; cursor: pointer;
+}
+.jump-demo:hover { background: rgba(193,95,60,.12); }
+</style>
+</head>
+<body>
+
+<div class="demo-banner">prototype · follows system light/dark · contract: DESIGN.md</div>
+
+<div class="doc-title">Announcing Rivet: first-party native desktop apps with a Racket core</div>
+
+<!-- post 1 — regular text + inline code + relative timestamp -->
+<section class="post">
+  <div class="meta">
+    <img class="avatar" alt="" onerror="this.style.display='none'">
+    <span class="author">alex</span><span class="dot">·</span>
+    <span>#1</span><span class="dot">·</span>
+    <span class="when" title="November 8, 2026 at 14:32">2h</span>
+    <span class="count" style="margin-left:auto">7 ♥</span>
+  </div>
+  <p>Rivet now ships first-party hosts for all three desktops. The engine
+  stays a plain <code>racket</code> package; each platform gets a thin
+  native shell — SwiftUI, WinUI 3, GTK4 — over the same RVT1 surface.</p>
+  <p>The interesting constraint is the transport: one binary frame
+  protocol, length-prefixed, no JSON on the wire except where a host
+  genuinely wants it.</p>
+</section>
+
+<!-- post 2 — Racket code block -->
+<section class="post">
+  <div class="meta">
+    <img class="avatar" alt="" onerror="this.style.display='none'">
+    <span class="author">brie</span><span class="dot">·</span>
+    <span>#2</span><span class="dot">·</span>
+    <span class="when" title="November 8, 2026 at 15:01">1h</span>
+  </div>
+  <p>Minimal host side is genuinely thin:</p>
+  <pre><code>(define-rpc topic-open
+  (id Integer) → rows
+  (lambda (id)
+    (rows-or-notify (topic-open-rows id))))</code></pre>
+  <p>Everything past that is the forum client.</p>
+</section>
+
+<!-- post 3 — quote with author line -->
+<section class="post">
+  <div class="meta">
+    <img class="avatar" alt="" onerror="this.style.display='none'">
+    <span class="author">chen</span><span class="dot">·</span>
+    <span>#3</span><span class="dot">·</span>
+    <span class="when" title="November 7, 2026 at 21:47">18h</span>
+    <span class="count" style="margin-left:auto">3 ♥</span>
+  </div>
+  <aside class="quote">
+    <div class="title">alex:</div>
+    <blockquote><p>one binary frame protocol, length-prefixed</p></blockquote>
+  </aside>
+  <p>Does the frame size cap hold for a full thread dump? A 300-post topic
+  with cooked HTML gets heavy.</p>
+</section>
+
+<!-- post 4 — table (contained overflow) + onebox + details -->
+<section class="post">
+  <div class="meta">
+    <img class="avatar" alt="" onerror="this.style.display='none'">
+    <span class="author">alex</span><span class="dot">·</span>
+    <span>#4</span><span class="dot">·</span>
+    <span class="when" title="November 1, 2026 at 09:12">Nov 1</span>
+  </div>
+  <p>Benchmark summary across the three hosts:</p>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Host</th><th>cold boot</th><th>topic open</th><th>load all (300p)</th><th>notes</th></tr></thead>
+    <tbody>
+      <tr><td>macOS</td><td>0.9s</td><td>0.15s</td><td>2.1s</td><td>WKWebView reuse per topic id</td></tr>
+      <tr><td>Windows</td><td>1.4s</td><td>0.22s</td><td>2.6s</td><td>WebView2 user-data folder is shared</td></tr>
+      <tr><td>Linux</td><td>1.1s</td><td>0.19s</td><td>2.3s</td><td>WebKitGTK 6.0</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The protocol spec lives upstream:</p>
+  <aside class="onebox">
+    <div class="source">github.com</div>
+    <h4><a href="#">turlamai/rivet — RVT1 wire format</a></h4>
+    <p>Frame-based RPC over a socketpair; name-checked dispatch with typed
+    positional arguments and result rows.</p>
+  </aside>
+  <details>
+    <summary>Raw protocol notes</summary>
+    <div class="contents">
+      <p>Frames: 4-byte little-endian length prefix, payload, no checksum
+      at this layer. Errors travel as frames, never as exceptions.</p>
+    </div>
+  </details>
+  <hr>
+</section>
+
+<!-- load-more bar mid-document (the batched state, replaces one-shot Load all) -->
+<div class="morebar" id="threadly-morebar">
+  <span>Showing 4 of 312 posts</span>
+  <button onclick="this.disabled=true;this.parentNode.classList.add('loading');setTimeout(()=>{this.disabled=false;this.parentNode.classList.remove('loading')},1200)">Load more</button>
+</div>
+
+<section class="post">
+  <div class="meta">
+    <img class="avatar" alt="" onerror="this.style.display='none'">
+    <span class="author">brie</span><span class="dot">·</span>
+    <span>#5</span><span class="dot">·</span>
+    <span class="when" title="October 12, 2026 at 11:03">Oct 12</span>
+  </div>
+  <p>Batches of 20 with the scroll anchor preserved between them — the
+  append swaps a mount node so the viewport never jumps.</p>
+</section>
+
+<!-- app-shell treatments demo (native rows, not in-document CSS) -->
+<div class="demo-h2">app shell — topic list rows (native mock)</div>
+<div class="list-demo">
+  <div class="row">
+    <span class="unread-dot"></span>
+    <span class="t">Stable module reference through `raco exe`?</span>
+    <span class="cat">General</span>
+    <span class="n">14</span>
+    <span class="new">6 new</span>
+    <span class="when" title="Last reply 25 minutes ago">25m</span>
+  </div>
+  <div class="row">
+    <span class="unread-dot"></span>
+    <span class="t">Sek: a new sequence data structure</span>
+    <span class="cat">Showcase</span>
+    <span class="n">9</span>
+    <span class="new">2 new</span>
+    <span class="when" title="Last reply 3 hours ago">3h</span>
+  </div>
+  <div class="row">
+    <span class="t" style="color:color-mix(in srgb, currentColor 72%, transparent)">Racket (online) meet-up: Saturday, 7 November</span>
+    <span class="cat">Events</span>
+    <span class="n">5</span>
+    <span class="when" title="Last reply 2 days ago">2d</span>
+  </div>
+  <div class="row">
+    <span class="t" style="color:color-mix(in srgb, currentColor 72%, transparent)">Announcing Rivet: first-party native desktop apps</span>
+    <span class="cat">Showcase</span>
+    <span class="n">312</span>
+    <span class="when" title="Last reply Oct 14, 2026">Oct 14</span>
+  </div>
+</div>
+<div class="demo-h2">floating jump-to-bottom (host-native pill, trailing corner)</div>
+
+<button class="jump-demo" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})">↓ Bottom</button>
+
+<script>
+// prototype-only: relative-time tooltip check + details rotation live in CSS.
+</script>
+</body>
+</html>
