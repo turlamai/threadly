@@ -67,7 +67,7 @@ Threadly 就来做这个桌面客户端,而且按 Racket 社区做事的方式:�
 |---|---|---|
 | macOS 14+（Apple silicon / Intel） | `threadly-<version>-macos-arm64.dmg` · `-x64.dmg` | `threadly-<version>-macos-arm64.zip` · `-x64.zip` |
 | Windows 10+ x64 | `threadly-<version>-windows-x64.msi` | `threadly-<version>-windows-x64.zip` |
-| Linux x64 / arm64 | `threadly-<version>-linux-<arch>.deb` · `.rpm` · `.AppImage` | `threadly-<version>-linux-<arch>.tar.gz`（feed 载荷） · `-linux-<arch>.zip` |
+| Linux x64 / arm64 | `threadly-<version>-linux-<arch>.deb` · `.rpm` · `.AppImage` · `.flatpak`（app id `site.jrtx.threadly`；`flatpak --user install ./threadly-<version>-linux-<arch>.flatpak` 安装） | `threadly-<version>-linux-<arch>.tar.gz`（feed 载荷） · `-linux-<arch>.zip` |
 
 每个版本都带校验过的 `SHA256SUMS`；应用内更新消费 Ed25519 签名的
 `update-manifest.json` feed（key id `threadly-2026-10`；Sigstore 溯源：

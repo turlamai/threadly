@@ -220,6 +220,44 @@ jobs:
         env:
           APPIMAGE_EXTRACT_AND_RUN: '1'
         run: raco rivet release --without-updates --development
+      # Wraps the tar.gz payload into a Flatpak bundle from the flatpak/
+      # manifest template (family contract: deb+rpm+AppImage+Flatpak+tar.gz).
+      # The manifest's module closure covers the two NEEDED entries outside
+      # the GNOME Platform runtime (liblz4.so.1, libtinfo.so.6). Like deb/rpm,
+      # the flatpak install shape is manual-by-design and stays out of the
+      # signed update feed. Runs before Family naming so the bundle joins
+      # the checksum sweep.
+      - name: Flatpak bundle
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH="${{ matrix.arch }}"
+          case "$ARCH" in x64) FPARCH=x86_64 ;; arm64) FPARCH=aarch64 ;; esac
+          sudo apt-get install --yes flatpak flatpak-builder
+          # User-level everything: runner accounts install runtimes and
+          # build without root. GNOME 50 is the oldest supported platform
+          # runtime (48 went EOL 2026-03-24); its glibc covers the
+          # ubuntu-built payload.
+          flatpak --user remote-add --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub \
+            "org.gnome.Platform/${FPARCH}/50" "org.gnome.Sdk/${FPARCH}/50"
+          # The manifest template carries version/arch/sha placeholders so
+          # the archive source's checksum is exact per release.
+          cp "dist/threadly-${VERSION}-linux-${ARCH}.tar.gz" .
+          SHA="$(sha256sum "threadly-${VERSION}-linux-${ARCH}.tar.gz" | cut -d' ' -f1)"
+          sed -e "s/__VERSION__/${VERSION}/" -e "s/__ARCH__/${ARCH}/" \
+              -e "s/__SHA256__/${SHA}/" \
+              flatpak/site.jrtx.threadly.yml > site.jrtx.threadly.gen.yml
+          # --disable-rofiles-fuse: runners have no /dev/fuse.
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=flatpak-repo flatpak-build site.jrtx.threadly.gen.yml
+          flatpak build-bundle flatpak-repo \
+            "threadly-${VERSION}-linux-${ARCH}.flatpak" site.jrtx.threadly stable
+          mv "threadly-${VERSION}-linux-${ARCH}.flatpak" dist/
+          rm -rf flatpak-build flatpak-repo \
+            "threadly-${VERSION}-linux-${ARCH}.tar.gz" site.jrtx.threadly.gen.yml
+          test -f "dist/threadly-${VERSION}-linux-${ARCH}.flatpak"
       - name: Family naming + checksums
         run: |
           set -euo pipefail
@@ -311,7 +349,8 @@ jobs:
             windows-x64.msi windows-x64.zip \
             linux-arm64.tar.gz linux-arm64.zip linux-x64.tar.gz linux-x64.zip \
             linux-amd64.deb linux-arm64.deb \
-            linux-aarch64.AppImage linux-x86_64.AppImage; do
+            linux-aarch64.AppImage linux-x86_64.AppImage \
+            linux-arm64.flatpak linux-x64.flatpak; do
             name="threadly-$VERSION-$suffix"
             test -s "dist/$name" || { echo "::error::Missing $name"; exit 1; }
             cp "dist/$name" public/
@@ -323,7 +362,8 @@ jobs:
           done
           cp dist/SHA256SUMS dist/update-manifest.json public/
           test -s public/update-manifest.json
-          test "$(find public -maxdepth 1 -type f -name 'threadly-*' | wc -l)" -eq 16
+          # 14 installers/archives + 2 RPMs + 2 Flatpak bundles.
+          test "$(find public -maxdepth 1 -type f -name 'threadly-*' | wc -l)" -eq 18
           (cd public && sha256sum -c SHA256SUMS)
           test -s /tmp/notes.md
           # Draft only; manual acceptance controls promotion to Latest.

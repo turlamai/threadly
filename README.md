@@ -99,7 +99,7 @@ Assets follow `threadly-<version>-<os>-<arch>.<ext>`:
 |---|---|---|
 | macOS 14+ (Apple silicon / Intel) | `threadly-<version>-macos-arm64.dmg` · `-x64.dmg` | `threadly-<version>-macos-arm64.zip` · `-x64.zip` |
 | Windows 10+ x64 | `threadly-<version>-windows-x64.msi` | `threadly-<version>-windows-x64.zip` |
-| Linux x64 / arm64 | `threadly-<version>-linux-<arch>.deb` · `.rpm` · `.AppImage` | `threadly-<version>-linux-<arch>.tar.gz` (the feed payload) · `-linux-<arch>.zip` |
+| Linux x64 / arm64 | `threadly-<version>-linux-<arch>.deb` · `.rpm` · `.AppImage` · `.flatpak` (app id `site.jrtx.threadly`; `flatpak --user install ./threadly-<version>-linux-<arch>.flatpak`) | `threadly-<version>-linux-<arch>.tar.gz` (the feed payload) · `-linux-<arch>.zip` |
 
 Every release carries a checked `SHA256SUMS`, and the in-app updater
 consumes the Ed25519-signed `update-manifest.json` feed (key id
