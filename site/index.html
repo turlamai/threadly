@@ -5,17 +5,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Threadly — Racket 社区论坛的原生客户端</title>
-    <meta name="description" content="Threadly: 在浏览器之外浏览、阅读、搜索 racket.discourse.group。匿名公开 JSON API 加礼貌的磁盘缓存，论坛原色分类、帖子头像与 680px 阅读栏宽。Rivet 线——Racket 引擎驱动原生壳。">
+    <meta name="description" content="Threadly: 在浏览器之外浏览、阅读、搜索 racket.discourse.group。匿名公开 JSON API 加礼貌的磁盘缓存，论坛原色分类、帖子头像与 680px 阅读栏宽。AGPL-3.0 免费开源，维护模式；Rivet 线——Racket 引擎驱动原生壳。">
     <link rel="canonical" href="https://threadly.jrtx.site/">
     <meta name="theme-color" content="#D97757">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Threadly">
     <meta property="og:title" content="Threadly — a native client for the Racket community forum">
-    <meta property="og:description" content="Browse, read and search racket.discourse.group outside the browser: anonymous public JSON API with a polite disk cache, forum-authentic category colors, post avatars and a 680px reading column.">
+    <meta property="og:description" content="Browse, read and search racket.discourse.group outside the browser: anonymous public JSON API with a polite disk cache, forum-authentic category colors, post avatars and a 680px reading column. Free and open source under AGPL-3.0, in maintenance mode.">
     <meta property="og:url" content="https://threadly.jrtx.site/">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Threadly — a native client for the Racket community forum">
-    <meta name="twitter:description" content="Read the Racket community outside the browser. Native, cached politely, credentials stay local.">
+    <meta name="twitter:description" content="Read the Racket community outside the browser. Native, cached politely, credentials stay local. Free, AGPL-3.0.">
 
     <!-- Theme + language pre-paint: no flash before the stylesheet paints.
          Storage keys are the site's historical keys (threadly-theme /
@@ -86,7 +86,7 @@
             <div class="kit-container">
                 <span class="kit-eyebrow" data-i18n="kicker">原生客户端 · 登录回帖 · AI 摘要与翻译</span>
                 <h1 data-i18n="hero-title">在浏览器之外，读 Racket 社区。</h1>
-                <p class="kit-text-2 tl-availability" data-i18n="hero.availability">开发预览。AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。</p>
+                <p class="kit-text-2 tl-availability" data-i18n="hero.availability">AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。</p>
                 <p class="kit-lead" data-i18n="hero-lede">Racket 的设计讨论、提案与生态动态都发生在 racket.discourse.group——而浏览器给这些长技术帖套上了一层层外壳。Threadly 用匿名公开的 JSON API 把它们带回原生窗口：论坛原色分类、帖子头像、680px 的阅读栏宽。</p>
                 <div class="kit-btn-row">
                     <div class="kit-dl">
@@ -128,14 +128,53 @@
                     <div class="kit-card">
                         <span class="kit-card-icon tl-emoji" aria-hidden="true">🖥️</span>
                         <h3 data-i18n="w3-title">桌面端本来就没有</h3>
-                        <p data-i18n="w3-body">Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块，且与产品线一样全平台。</p>
+                        <p data-i18n="w3-body">Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块：macOS、Windows、Linux 三个桌面平台都有。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="kit-section kit-section--alt" id="features">
+            <div class="kit-container">
+                <h2 class="kit-h2" data-i18n="features-title">功能</h2>
+                <div class="kit-grid kit-grid--3" style="margin-top: 44px;">
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">🧵</span>
+                        <h3 data-i18n="f1-title">长帖阅读器</h3>
+                        <p data-i18n="f1-body">680px 单列阅读栏，论坛 HTML 原样抵达：引用、代码块、表格按论坛语义渲染，不重排。长帖分批加载，滚动位置不丢；本地已读追踪给新帖标「N new」，同坛链接在应用内直开，随时一键跳回网页原帖。0.15.0 的这批阅读打磨先行登陆 macOS，Windows / Linux 平价跟进。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">✍️</span>
+                        <h3 data-i18n="f2-title">回复撰写器</h3>
+                        <p data-i18n="f2-body">Markdown 编辑器贴着讨论写：草稿每敲一键就落盘，切话题、关撰写器都不丢字；Esc 取消、⏎ 发送。回复永远以论坛为准，失败后草稿原样保留、按钮醒来再试。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">🔑</span>
+                        <h3 data-i18n="f3-title">登录态，凭据不出本机</h3>
+                        <p data-i18n="f3-body">登录走 Discourse user API key 流：在浏览器里批准，把论坛给出的代码粘贴回来即完成；凭据只存本机，回帖、点赞、通知不经过任何第三方。论坛当前停发 user API key，登录入口等待论坛政策恢复；匿名阅读不受影响。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">🔔</span>
+                        <h3 data-i18n="f4-title">通知</h3>
+                        <p data-i18n="f4-body">登录后侧栏出现 Notifications 分区：类型图标着 accent 色，未读条目带 ● 前缀，点击直达关联主题；一条通知都没有时，就一行安静的「No notifications.」。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">✨</span>
+                        <h3 data-i18n="f5-title">BYOK AI：摘要与翻译</h3>
+                        <p data-i18n="f5-body">长帖一键 Summarize / Translate，读的是整条线程而不是开头二十楼。Key 完全自带：threadly ai-config 配任意 OpenAI 兼容端点，密钥掩码显示、0600 落盘、只发往所配端点；结果可选中复制，自带免责行提醒回到原帖核对。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon tl-emoji" aria-hidden="true">👤</span>
+                        <h3 data-i18n="f6-title">匿名优先</h3>
+                        <p data-i18n="f6-body">匿名即可完整浏览、搜索、阅读。未登录不出现死按钮：写入口要么隐藏、要么一键引导登录——降级是设计出来的，不是残缺。</p>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Principles -->
-        <section class="kit-section kit-section--alt" id="principles">
+        <section class="kit-section" id="principles">
             <div class="kit-container">
                 <h2 class="kit-h2" data-i18n="principles-title">设计原则</h2>
                 <div class="kit-grid kit-grid--2" style="margin-top: 44px;">
@@ -160,7 +199,7 @@
         </section>
 
         <!-- Get started (three steps) -->
-        <section class="kit-section" id="start">
+        <section class="kit-section kit-section--alt" id="start">
             <div class="kit-container">
                 <h2 class="kit-h2" data-i18n="start-title">三步开始</h2>
                 <div class="kit-steps" style="margin-top: 44px;">
@@ -181,7 +220,7 @@
         </section>
 
         <!-- Download -->
-        <section class="kit-section kit-section--alt" id="download">
+        <section class="kit-section" id="download">
             <div class="kit-container">
                 <h2 class="kit-h2" data-i18n="download-title">下载</h2>
                 <div class="kit-grid kit-grid--3" style="margin-top: 44px; align-items: start;">
@@ -202,7 +241,7 @@
                     </div>
                     <div class="kit-card">
                         <h3>Linux（x64 / arm64）</h3>
-                        <p data-i18n="dl-linux">deb、rpm、AppImage、tar.gz 与便携 zip。</p>
+                        <p data-i18n="dl-linux">deb、rpm、AppImage、Flatpak、tar.gz 与便携 zip。</p>
                         <p style="margin-top: 16px;"><a class="kit-btn kit-btn--secondary" data-kit-dl="linux" href="https://github.com/turlamai/threadly/releases/latest" data-i18n="dl-get">下载 →</a></p>
                     </div>
                     <div class="kit-card">
@@ -213,7 +252,7 @@
                             <span class="kit-chip">Linux</span>
                             <span class="kit-chip">iOS / iPadOS / Android</span>
                         </p>
-                        <p class="kit-text-2" style="margin-top: 14px;" data-i18n="dl-platforms-body">桌面预览附件可用；移动端暂缓。</p>
+                        <p class="kit-text-2" style="margin-top: 14px;" data-i18n="dl-platforms-body">桌面安装包就绪；移动端暂缓。</p>
                     </div>
                 </div>
                 <p style="text-align:center;margin-top:26px"><a href="https://github.com/turlamai/threadly/releases" data-i18n="dl.all-releases">全部版本</a></p>
@@ -221,9 +260,9 @@
         </section>
 
         <!-- Roadmap -->
-        <section class="kit-section" id="roadmap">
+        <section class="kit-section kit-section--alt" id="roadmap">
             <div class="kit-container">
-                <h2 class="kit-h2" data-i18n="roadmap-title">路线图</h2>
+                <h2 class="kit-h2" data-i18n="roadmap-title">里程碑</h2>
                 <ul class="tl-roadmap">
                     <li><strong>M1</strong><span data-i18n="rm1">Windows / Linux 原生壳（已完成，随 0.2.0 发布）</span></li>
                     <li><strong>M2</strong><span data-i18n="rm2">登录态：Discourse user API key 流、回帖、点赞、通知（已完成，随 0.9.0 发布）</span></li>
@@ -234,7 +273,7 @@
         </section>
 
         <!-- Get started -->
-        <section class="kit-section kit-section--alt" id="start-here">
+        <section class="kit-section" id="start-here">
             <div class="kit-container">
                 <span class="kit-kicker" data-i18n="start.kicker">开始使用</span>
                 <h2 class="kit-h2" data-i18n="start.title">从一次有效使用开始。</h2>
@@ -247,10 +286,10 @@
                         <p data-i18n="start.s2.body">搜索熟悉的短语，打开原论坛链接核对作者与最新内容。</p>
                     </div>
                     <div class="kit-step">
-                        <p data-i18n="start.s3.body">使用登录、回复或 AI 前，核对当前构建是否实际提供该流程，并检查凭据和服务商行为。</p>
+                        <p data-i18n="start.s3.body">需要写操作或 AI 时再配置：登录走论坛授权流；AI 用 threadly ai-config 配自己的端点与密钥，凭据只存本机。</p>
                     </div>
                 </div>
-                <p class="kit-text-2" style="margin-top: 30px; max-width: 74ch;"><span data-i18n="start.limits-a">登录、回复、AI 的真实状态、安全存储与打包阅读搜索验收仍在 </span><a href="https://github.com/turlamai/threadly/issues/1">#1</a><span data-i18n="start.limits-b"> 跟进。源帖编辑或删除后，本地缓存可能不同。</span></p>
+                <p class="kit-text-2" style="margin-top: 30px; max-width: 74ch;"><span data-i18n="start.limits">登录动作的真实状态跟随论坛政策：论坛当前停发 user API key，登录、回帖、点赞与通知等待论坛恢复发钥；匿名阅读不受影响。源帖编辑或删除后，本地缓存可能不同。</span></p>
                 <div class="tl-start-links">
                     <a href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.zh-CN.md" data-en-href="https://github.com/turlamai/threadly/blob/main/docs/USER-GUIDE.md" data-i18n="start.guide">安装、隐私与恢复</a>
                     <a href="https://github.com/turlamai/threadly/issues" data-i18n="start.help">反馈与帮助</a>
@@ -307,7 +346,7 @@
             "nav.why": "为什么需要", "nav.principles": "设计原则", "nav.start": "三步开始", "nav.download": "下载", "nav.guide": "使用手册", "nav.github": "GitHub",
             "kicker": "原生客户端 · 登录回帖 · AI 摘要与翻译",
             "hero-title": "在浏览器之外，读 Racket 社区。",
-            "hero.availability": "开发预览。AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。",
+            "hero.availability": "AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。",
             "hero-lede": "Racket 的设计讨论、提案与生态动态都发生在 racket.discourse.group——而浏览器给这些长技术帖套上了一层层外壳。Threadly 用匿名公开的 JSON API 把它们带回原生窗口：论坛原色分类、帖子头像、680px 的阅读栏宽。",
             "hero.badge": "维护模式 · AGPL-3.0 · macOS / Windows / Linux",
             "hero.source": "查看源码",
@@ -320,7 +359,20 @@
             "w2-title": "长帖配得上更好的排版",
             "w2-body": "关于类型系统和宏展开器的讨论动辄上百楼：680px 阅读栏宽、帖子头像、论坛原色分类，长文终于有了阅读的样子。",
             "w3-title": "桌面端本来就没有",
-            "w3-body": "Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块，且与产品线一样全平台。",
+            "w3-body": "Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块：macOS、Windows、Linux 三个桌面平台都有。",
+            "features-title": "功能",
+            "f1-title": "长帖阅读器",
+            "f1-body": "680px 单列阅读栏，论坛 HTML 原样抵达：引用、代码块、表格按论坛语义渲染，不重排。长帖分批加载，滚动位置不丢；本地已读追踪给新帖标「N new」，同坛链接在应用内直开，随时一键跳回网页原帖。0.15.0 的这批阅读打磨先行登陆 macOS，Windows / Linux 平价跟进。",
+            "f2-title": "回复撰写器",
+            "f2-body": "Markdown 编辑器贴着讨论写：草稿每敲一键就落盘，切话题、关撰写器都不丢字；Esc 取消、⏎ 发送。回复永远以论坛为准，失败后草稿原样保留、按钮醒来再试。",
+            "f3-title": "登录态，凭据不出本机",
+            "f3-body": "登录走 Discourse user API key 流：在浏览器里批准，把论坛给出的代码粘贴回来即完成；凭据只存本机，回帖、点赞、通知不经过任何第三方。论坛当前停发 user API key，登录入口等待论坛政策恢复；匿名阅读不受影响。",
+            "f4-title": "通知",
+            "f4-body": "登录后侧栏出现 Notifications 分区：类型图标着 accent 色，未读条目带 ● 前缀，点击直达关联主题；一条通知都没有时，就一行安静的「No notifications.」。",
+            "f5-title": "BYOK AI：摘要与翻译",
+            "f5-body": "长帖一键 Summarize / Translate，读的是整条线程而不是开头二十楼。Key 完全自带：threadly ai-config 配任意 OpenAI 兼容端点，密钥掩码显示、0600 落盘、只发往所配端点；结果可选中复制，自带免责行提醒回到原帖核对。",
+            "f6-title": "匿名优先",
+            "f6-body": "匿名即可完整浏览、搜索、阅读。未登录不出现死按钮：写入口要么隐藏、要么一键引导登录——降级是设计出来的，不是残缺。",
             "principles-title": "设计原则",
             "p1-title": "论坛是唯一事实源",
             "p1-body": "Threadly 只缓存、不分叉：编辑、删除、挪版永远以论坛为准，每个帖子都能一键跳回原链。",
@@ -341,12 +393,12 @@
             "dl-mac-arm": "DMG 安装器，适配 M 系列芯片。",
             "dl-mac-x64": "DMG 安装器，适配 Intel 芯片。",
             "dl-win": "MSI 安装器与便携 zip。",
-            "dl-linux": "deb、rpm、AppImage、tar.gz 与便携 zip。",
+            "dl-linux": "deb、rpm、AppImage、Flatpak、tar.gz 与便携 zip。",
             "dl-get": "下载 →",
             "dl.all-releases": "全部版本",
             "dl-platforms-title": "平台",
-            "dl-platforms-body": "桌面预览附件可用；移动端暂缓。",
-            "roadmap-title": "路线图",
+            "dl-platforms-body": "桌面安装包就绪；移动端暂缓。",
+            "roadmap-title": "里程碑",
             "rm1": "Windows / Linux 原生壳（已完成，随 0.2.0 发布）",
             "rm2": "登录态：Discourse user API key 流、回帖、点赞、通知（已完成，随 0.9.0 发布）",
             "rm3": "阅读增值：长帖 AI 摘要、翻译（已完成，随 0.10.0 发布）",
@@ -357,9 +409,8 @@
             "start.platforms": "桌面维护范围为 macOS、Windows、Linux；移动与手表客户端尚未交付。",
             "start.s1.body": "无需登录即可打开最新主题并阅读一篇讨论。",
             "start.s2.body": "搜索熟悉的短语，打开原论坛链接核对作者与最新内容。",
-            "start.s3.body": "使用登录、回复或 AI 前，核对当前构建是否实际提供该流程，并检查凭据和服务商行为。",
-            "start.limits-a": "登录、回复、AI 的真实状态、安全存储与打包阅读搜索验收仍在 ",
-            "start.limits-b": " 跟进。源帖编辑或删除后，本地缓存可能不同。",
+            "start.s3.body": "需要写操作或 AI 时再配置：登录走论坛授权流；AI 用 threadly ai-config 配自己的端点与密钥，凭据只存本机。",
+            "start.limits": "登录动作的真实状态跟随论坛政策：论坛当前停发 user API key，登录、回帖、点赞与通知等待论坛恢复发钥；匿名阅读不受影响。源帖编辑或删除后，本地缓存可能不同。",
             "start.guide": "安装、隐私与恢复",
             "start.help": "反馈与帮助",
             "start.usage": "使用与帮助",
@@ -373,7 +424,7 @@
             "nav.why": "Why", "nav.principles": "Principles", "nav.start": "Get started", "nav.download": "Download", "nav.guide": "User guide", "nav.github": "GitHub",
             "kicker": "native client · sign in to reply · AI summaries & translation",
             "hero-title": "Read the Racket community, outside the browser.",
-            "hero.availability": "Development preview. Free community reader in maintenance mode under AGPL-3.0. No commercial account or paid mobile offer.",
+            "hero.availability": "Free community reader in maintenance mode under AGPL-3.0. No commercial account or paid mobile offer.",
             "hero-lede": "Racket's design discussions, proposals and ecosystem news live on racket.discourse.group — and the browser wraps those long technical threads in layer after layer of chrome. Threadly brings them back to a native window over the anonymous public JSON API: forum-authentic category colors, post avatars, a 680px reading column.",
             "hero.badge": "Maintenance mode · AGPL-3.0 · macOS / Windows / Linux",
             "hero.source": "View source",
@@ -386,7 +437,20 @@
             "w2-title": "Long threads deserve better type",
             "w2-body": "Discussions about type systems and macro expanders run hundreds of posts deep: a 680px reading column, post avatars, forum-authentic category chips — long-form finally reads like long-form.",
             "w3-title": "There was no desktop client",
-            "w3-body": "Discourse ships official iOS and Android apps only; desktop users get a URL. Threadly fills that gap, and goes full-platform like the rest of the line.",
+            "w3-body": "Discourse ships official iOS and Android apps only; desktop users get a URL. Threadly fills that gap on macOS, Windows and Linux.",
+            "features-title": "Features",
+            "f1-title": "A reader built for long threads",
+            "f1-body": "A 680px single reading column; the forum's own HTML arrives as written — quotes, code blocks and tables render by forum semantics, never re-flowed. Long threads load in batches with the scroll position intact; local read tracking flags fresh posts with an \"N new\" pill, same-forum links open in the app, and every thread keeps its one-click jump back to the web. The 0.15.0 reading polish ships on macOS first; Windows and Linux parity follows.",
+            "f2-title": "The reply composer",
+            "f2-body": "A Markdown editor right against the discussion: drafts save on every keystroke — switch topics or close the composer and nothing is lost; Esc cancels, ⏎ sends. The forum stays the source of truth, and a failed reply keeps your draft with the button awake for retry.",
+            "f3-title": "Signed in, credentials stay local",
+            "f3-body": "Sign-in uses the Discourse user API key flow: approve in the browser, paste the code the forum shows, done. Credentials never leave the device — replies, likes and notifications go directly to the forum, with no middleman. The forum has user API key issuance disabled right now, so the sign-in entry waits on the forum's own policy; anonymous reading is unaffected.",
+            "f4-title": "Notifications",
+            "f4-body": "Signing in adds a Notifications section to the sidebar: type icons in the accent color, unread entries prefixed with a dot, each click opening the thread it refers to. When there is nothing, you get a single quiet line: No notifications.",
+            "f5-title": "BYOK AI: summaries & translation",
+            "f5-body": "Summarize or translate a long thread in one click — the AI reads the whole thread, not just its first twenty posts. Bring your own key: threadly ai-config points at any OpenAI-compatible endpoint; the key is masked, stored 0600 on your disk and sent nowhere but the endpoint you configured. Results are selectable, with a disclaimer line reminding you to check the thread.",
+            "f6-title": "Anonymous first",
+            "f6-body": "Browsing, searching and reading need no account at all. Signed out, there are no dead buttons: write entries either hide or guide you to sign in — degradation is designed, not broken.",
             "principles-title": "Design principles",
             "p1-title": "The forum is the source of truth",
             "p1-body": "Threadly caches, it never forks: edits, deletions and topic moves always win, and every thread links back to the web.",
@@ -407,12 +471,12 @@
             "dl-mac-arm": "DMG installer for Apple Silicon.",
             "dl-mac-x64": "DMG installer for Intel Macs.",
             "dl-win": "MSI installer and portable zip.",
-            "dl-linux": "deb, rpm, AppImage, tar.gz and portable zip for x64 and arm64.",
+            "dl-linux": "deb, rpm, AppImage, Flatpak, tar.gz and portable zip for x64 and arm64.",
             "dl-get": "Download →",
             "dl.all-releases": "All releases",
             "dl-platforms-title": "Platforms",
-            "dl-platforms-body": "Desktop preview assets are available; mobile is deferred.",
-            "roadmap-title": "Roadmap",
+            "dl-platforms-body": "Desktop installers are available; mobile is deferred.",
+            "roadmap-title": "Milestones",
             "rm1": "Windows / Linux native hosts (done; shipped with 0.2.0)",
             "rm2": "Signed-in mode: Discourse user API key flow, replies, likes, notifications (done; shipped with 0.9.0)",
             "rm3": "Reading value-add: AI thread summaries, translation (done; shipped with 0.10.0)",
@@ -423,9 +487,8 @@
             "start.platforms": "Desktop maintenance scope: macOS, Windows and Linux. Mobile and watch clients are not current deliveries.",
             "start.s1.body": "Open the latest topics without signing in and read one thread.",
             "start.s2.body": "Search a known phrase and follow the original forum link to confirm attribution and current content.",
-            "start.s3.body": "If using login, replies or AI, check that the selected build actually provides the flow and review its credential/provider behavior first.",
-            "start.limits-a": "Login/reply/AI status, secure storage and packaged reading/search qualification remain tracked in ",
-            "start.limits-b": ". Cached content may differ from edited/deleted source posts.",
+            "start.s3.body": "Sign in only when you need to write, and point BYOK AI at your own endpoint with threadly ai-config — credentials stay on your machine.",
+            "start.limits": "Signed-in actions follow the forum's own policy: user API key issuance is disabled right now, so sign-in, replies, likes and notifications wait on the forum; anonymous reading is unaffected. Cached content may differ from edited or deleted source posts.",
             "start.guide": "Installation, privacy & recovery",
             "start.help": "Get help",
             "start.usage": "Usage & help",
