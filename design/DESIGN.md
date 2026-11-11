@@ -52,3 +52,19 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 3. **层级三层封顶**：bg < surface < raised/accent-soft；分隔靠 hairline，不用重描边与阴影堆叠表达层级。
 4. **写路径永远可回退**：回复失败草稿保留、撰写器关闭/切题不丢字；失败加载 Retry 原位且列表选择不动；like/回复有 pending 与 settle 态，失败后按钮必须醒来。
 5. **凭据与竞态零暴露**：key 掩码 + 0600 + 不出现在任何 UI/日志/反馈；身份作废（登出/切题/回列表）后迟到的响应一律丢弃，不得串屏。
+
+
+## 平台映射与差异声明（预钉 · 宿主实现时升级为落点表）
+
+统一层（三平台必须一致，`design/prototype/` 原型已锁定）：信息架构、核心流程、快捷键语义、
+语义色与层级词汇。因地制宜层（按平台惯例落地，不预画像素）：
+
+| 维度 | macOS | Windows | Linux |
+|---|---|---|---|
+| 修饰键 | ⌘ | Ctrl | Ctrl |
+| 命令入口 | 原生菜单栏 | 菜单栏/命令行内 | 菜单栏 |
+| 字体 | 系统栈 + PingFang SC | 系统栈 + Microsoft YaHei | 系统栈 + Noto Sans CJK |
+| 原生控件 | SwiftUI 控件 | WinUI 3 控件 | GTK4 控件 |
+
+差异声明纪律：宿主特例必须先写进本节才能实现；未声明的宿主差异按违约处理
+（案例：taskly 漂移台账 D8）。
