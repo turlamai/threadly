@@ -1166,15 +1166,20 @@ struct ThreadWebView: NSViewRepresentable {
             .replacingOccurrences(of: ">", with: "&gt;")
     }
 
-    static let isoFormatter: ISO8601DateFormatter = {
+    // nonisolated(unsafe): immutable after creation, and NSDateFormatter /
+    // ISO8601DateFormatter are documented thread-safe for formatting since
+    // macOS 10.9 — RelativeTime (nonisolated) parses timestamps with these,
+    // and the stricter toolchain on the release x64 runner enforces the
+    // distinction even though the local arm64 build does not.
+    nonisolated(unsafe) static let isoFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
 
-    static let fallbackFormatter = ISO8601DateFormatter()
+    nonisolated(unsafe) static let fallbackFormatter = ISO8601DateFormatter()
 
-    static let displayFormatter: DateFormatter = {
+    nonisolated(unsafe) static let displayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateStyle = .medium
         f.timeStyle = .short

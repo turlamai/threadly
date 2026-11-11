@@ -184,7 +184,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { arch: x64, runner: ubuntu-latest, racket-arch: x64 }
+          # ubuntu-24.04, not ubuntu-latest: the 26.04 image's rpm 4.20+
+          # changed the BUILDROOT layout and %files glob semantics, which
+          # breaks rivet's create-rpm! (v0.15.0's first tag run failed
+          # there; the arm64 leg pins 24.04 and builds the same spec
+          # fine). Revisit when rivet's rpm path is 4.20-clean.
+          - { arch: x64, runner: ubuntu-24.04, racket-arch: x64 }
           - { arch: arm64, runner: ubuntu-24.04-arm, racket-arch: arm64 }
     steps:
       - uses: actions/checkout@v4
