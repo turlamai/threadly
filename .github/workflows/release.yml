@@ -64,7 +64,9 @@ jobs:
           printf '%s\n' "$UPDATE_ED25519_PRIVATE_KEY" > "$KEY_PEM"
           VERSION="$(tr -d '[:space:]' < VERSION)"
           for name in macos-arm64.zip macos-x64.zip windows-x64.zip linux-x64.tar.gz; do
-            : > "$TMP/threadly-$VERSION-$name"
+            # the manifest schema requires a positive payload size, so the
+            # stubs carry a marker line rather than being empty
+            printf 'threadly signing preflight stub\n' > "$TMP/threadly-$VERSION-$name"
           done
           bash scripts/make-update-manifest.sh "v$VERSION" "$TMP" "$KEY_PEM" > /dev/null
           test -s "$TMP/update-manifest.json"
