@@ -126,6 +126,16 @@
        (fetch-topic-all (string->number id)))
      (post-rows posts (topic-summary-posts-count topic)))))
 
+;; The reader's next ~20 posts after `loaded-count`, same row shape as
+;; topic-open. Hosts loop until empty rows instead of pulling a whole
+;; long thread in one blocking all-posts call.
+(define-rpc (topic-posts-page [id String] [loaded-count Int64] : (List (List String)))
+  (rows-or-notify
+   (lambda ()
+     (define-values (posts total)
+       (fetch-topic-posts-page (string->number id) loaded-count))
+     (post-rows posts total))))
+
 (define-rpc (search-list [q String] : (List (List String)))
   (rows-or-notify
    (lambda ()

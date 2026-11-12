@@ -188,3 +188,59 @@
   (check-true (string-contains? (third lines)
                                 "GET /t/4416/posts.json?post_ids[]=15")
               "second batch carries the remainder"))
+
+;; ---- fetch-topic-posts-page ---------------------------------------------------
+;; The reader's next batch: the host's loaded count indexes into the
+;; cached topic doc's stream; each call fetches exactly one ≤batch slice
+;; past it. Empty list at the end; negative counts clamp to zero.
+
+(test-case "fetch-topic-posts-page: pages by loaded-count, ends empty"
+  (define (open-loopback-listener)
+    (let loop ([tries 20])
+      (define p (+ 20000 (random 40000)))
+      (with-handlers ([exn:fail?
+                       (lambda (_)
+                         (when (zero? tries) (error 'discourse-test "no free port"))
+                         (loop (sub1 tries)))])
+        (values (tcp-listen p 4 #f "127.0.0.1") p))))
+  (define-values (listener port) (open-loopback-listener))
+  (define head
+    (format "{\"id\":4417,\"title\":\"Paged thread\",\"posts_count\":5,\"post_stream\":{\"posts\":[~a,~a],\"stream\":[21,22,23,24,25]}}"
+            (post-json 21 1 "alice") (post-json 22 2 "bob")))
+  (define slice-1
+    (format "{\"post_stream\":{\"posts\":[~a,~a]}}"
+            (post-json 23 3 "carol") (post-json 24 4 "dave")))
+  (define slice-2 (format "{\"post_stream\":{\"posts\":[~a]}}" (post-json 25 5 "erin")))
+  (define slice-0
+    (format "{\"post_stream\":{\"posts\":[~a,~a]}}"
+            (post-json 21 1 "alice") (post-json 22 2 "bob")))
+  (define-values (server requests)
+    (serve-jsons! listener (list head slice-1 slice-2 slice-0)))
+  ;; one shared data dir: the topic doc must come from cache after the
+  ;; first page call — only the posts.json slices hit the wire again
+  (define data-dir (make-temporary-file "threadly-page-~a" 'directory))
+  (define (page loaded-count)
+    (parameterize ([current-forum-base-url (format "http://127.0.0.1:~a" port)]
+                   [current-data-dir data-dir]
+                   [current-cache-ttl-seconds 300]
+                   [fetch-topic-all-batch-size 2])
+      (fetch-topic-posts-page 4417 loaded-count)))
+  (define-values (posts-1 total-1) (page 2))
+  (define-values (posts-2 total-2) (page 4))
+  (define-values (posts-3 total-3) (page 5))
+  (define-values (posts-4 total-4) (page -3))
+  (sync/timeout 5 server)
+
+  (check-equal? (map forum-post-post-number posts-1) (list 3 4) "the two ids past the loaded count")
+  (check-equal? total-1 5)
+  (check-equal? (map forum-post-post-number posts-2) (list 5) "short final slice")
+  (check-equal? posts-3 (list) "at the end of the stream: empty, no fetch")
+  (check-equal? (map forum-post-post-number posts-4) (list 1 2) "negative counts clamp to zero")
+
+  (define lines (reverse (unbox requests)))
+  ;; head (cached after the first page call) + one posts.json per
+  ;; non-empty page; the end-of-stream call performs no request at all
+  (check-equal? (length lines) 4 "head + slice-1 + slice-2 + slice-0")
+  (check-true (string-contains? (second lines) "post_ids[]=23&post_ids[]=24"))
+  (check-true (string-contains? (third lines) "post_ids[]=25"))
+  (check-true (string-contains? (fourth lines) "post_ids[]=21&post_ids[]=22")))

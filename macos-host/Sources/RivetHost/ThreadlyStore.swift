@@ -94,6 +94,12 @@ final class ThreadlyStore: ObservableObject {
     /// Draft replies per topic id, kept across failed loads and composer
     /// dismissals; dropped once the reply actually posts.
     private var replyDrafts: [Int: String] = [:]
+    /// Locally tracked read/unread positions and scroll anchors.
+    let readState = ReadStateStore()
+    /// Post number the next reader build should scroll to: a same-forum
+    /// link click with a post anchor. Consumed when the reader mounts;
+    /// takes precedence over the stored scroll anchor.
+    @Published var pendingAnchor: Int?
 
     enum SignInStage: Equatable {
         case idle            // no sign-in in progress
@@ -417,6 +423,23 @@ final class ThreadlyStore: ObservableObject {
         postsTotal = 0
     }
 
+    /// A same-forum topic link clicked inside the reader: open in-app.
+    /// A link that pins a post number hands it to the reader as the
+    /// pending anchor (the reader loads pages until that post renders).
+    /// Reopening the already-open thread is deliberate — the fresh
+    /// document honors the anchor without in-place scroll bookkeeping.
+    func openForumTopicLink(id: Int, postNumber: Int?) {
+        let known = displayTopics.first(where: { $0.id == id })?.title
+        let current = selectedTopic?.id == id ? selectedTopic?.title : nil
+        pendingAnchor = postNumber
+        Task { await openTopicId(id, title: known ?? current ?? "Topic \(id)") }
+    }
+
+    /// The unread math for one list row (local read state, no account).
+    func newPostCount(for topic: TopicRow) -> Int {
+        readState.newPostCount(topic: topic.id, postsCount: topic.postsCount)
+    }
+
     /// Bumps the load identity so every in-flight open completes as
     /// stale; clears the transient load UI it owns.
     private func invalidateTopicLoad() {
@@ -440,23 +463,27 @@ final class ThreadlyStore: ObservableObject {
         }
     }
 
-    /// The whole thread for the reader's "load all" bar. Deliberately
-    /// not published: the webview appends the tail in place, and a posts
-    /// update would reload the document and throw the scroll away.
-    /// Returns every post; the caller drops the ones already rendered.
-    func fetchAllPosts() async -> [PostRow]? {
-        guard let id = selectedTopic?.id, let api else { return nil }
+    /// The reader's next batch after `loadedCount` shown posts. Like the
+    /// fetch-all it replaces, this deliberately does not touch published
+    /// posts: the webview appends the tail in place, and a published
+    /// append would reload the document and throw the scroll away. Rows
+    /// at or below `highestLoadedPostNumber` are dropped so a batch that
+    /// raced a stream change can never double-render a post. A
+    /// superseded load (topic switched meanwhile) is dropped entirely.
+    func fetchMorePosts(topicId: Int, loadedCount: Int,
+                        highestLoadedPostNumber: Int) async -> (tail: [PostRow], total: Int)? {
+        guard let api else { return nil }
         let generation = topicLoadGeneration
         do {
-            let rows = try await api.topic_posts_all(id: String(id))
-            // a superseded load-all (topic switched meanwhile) must not
-            // move this thread's total
+            let rows = try await api.topic_posts_page(id: String(topicId),
+                                                      loaded_count: Int64(loadedCount))
             guard generation == topicLoadGeneration else { return nil }
-            postsTotal = Self.postsTotal(from: rows)
-            return rows.compactMap(Self.post(from:))
+            let all = rows.compactMap(Self.post(from:))
+            let tail = all.filter { $0.number > highestLoadedPostNumber }
+            return (tail, Self.postsTotal(from: rows))
         } catch {
             guard generation == topicLoadGeneration else { return nil }
-            statusLine = "Couldn't load the whole thread: \(error)"
+            statusLine = "Couldn't load more posts: \(error)"
             return nil
         }
     }

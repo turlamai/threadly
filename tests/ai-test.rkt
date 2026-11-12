@@ -165,8 +165,35 @@
               "target language reaches the prompt"))
 
 (test-case "translate asks for the configured language"
+  (define-values (forum-listener forum-port) (open-loopback-listener))
   (define-values (ai-listener ai-port) (open-loopback-listener))
   (define captured (box #f))
+
+  ;; forum leg: /t/7.json whose stream holds exactly the head ids, so no
+  ;; posts.json slice is needed (the summarize case above covers tails)
+  (define forum-doc
+    (jsexpr->string
+     (hasheq 'id 7
+             'title "Test thread"
+             'posts_count 2
+             'post_stream
+             (hasheq 'posts
+                     (list (hasheq 'id 11 'username "alice" 'cooked "<p>hello world</p>"
+                                   'post_number 1 'actions_summary (list))
+                           (hasheq 'id 12 'username "bob" 'cooked "<p>a reply</p>"
+                                   'post_number 2 'actions_summary (list)))
+                     'stream (list 11 12)))))
+  (define forum-server
+    (thread
+     (lambda ()
+       (define-values (in out) (tcp-accept forum-listener))
+       (read-request in)
+       (display (string-append "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                               (~a (string-length forum-doc))
+                               "\r\n\r\n" forum-doc)
+                out)
+       (close-input-port in) (close-output-port out) (tcp-close forum-listener))))
+
   (define ai-server
     (thread
      (lambda ()
@@ -180,15 +207,97 @@
        (set-box! captured captured-request))))
 
   (parameterize ([current-data-dir
-                  (make-temporary-file "threadly-ai-tr-~a" 'directory)])
+                  (make-temporary-file "threadly-ai-tr-~a" 'directory)]
+                 [current-forum-base-url (format "http://127.0.0.1:~a" forum-port)])
     (ai-config-save! (format "http://127.0.0.1:~a/v1" ai-port)
                      "sk-wire-test" "wire-model" "Japanese")
     (define answer (ai-translate-topic 7))
     (check-equal? answer "the model said this"))
 
   (sync/timeout 5 ai-server)
+  (sync/timeout 5 forum-server)
   (define body (list-ref (unbox captured) 2))
   (define doc (read-json (open-input-string body)))
   (check-true (string-contains? (hash-ref (car (hash-ref doc 'messages)) 'content)
                                 "Japanese")
               "translation prompt targets the configured language"))
+
+;; ---- full-thread input ---------------------------------------------------------
+;; run-over-topic reads the WHOLE thread (fetch-topic-all), not just the
+;; head chunk the reader starts with — the transcript must carry posts
+;; past post #2 — and the transcript is clipped at the char budget.
+
+(test-case "summarize sees the thread tail, transcript clips at the budget"
+  (define-values (forum-listener forum-port) (open-loopback-listener))
+  (define-values (ai-listener ai-port) (open-loopback-listener))
+  (define captured (box #f))
+
+  (define (post n)
+    (hasheq 'id (+ 10 n) 'username "carol"
+            'cooked (format "<p>tail post ~a here</p>" n)
+            'post_number n 'actions_summary (list)))
+  (define forum-doc
+    (jsexpr->string
+     (hasheq 'id 7
+             'title "Test thread"
+             'posts_count 4
+             'post_stream
+             (hasheq 'posts
+                     (list (hasheq 'id 11 'username "alice" 'cooked "<p>hello world</p>"
+                                   'post_number 1 'actions_summary (list))
+                           (hasheq 'id 12 'username "bob" 'cooked "<p>a reply</p>"
+                                   'post_number 2 'actions_summary (list)))
+                     'stream (list 11 12 13 14)))))
+  (define tail-slice
+    (jsexpr->string (hasheq 'post_stream (hasheq 'posts (list (post 3) (post 4))))))
+
+  (define forum-server
+    (thread
+     (lambda ()
+       ;; head doc, then the posts.json slice for the tail ids
+       (for ([body-str (in-list (list forum-doc tail-slice))])
+         (define-values (in out) (tcp-accept forum-listener))
+         (read-request in)
+         (display (string-append "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                                 (~a (string-length body-str))
+                                 "\r\n\r\n" body-str)
+                  out)
+         (close-input-port in) (close-output-port out))
+       (tcp-close forum-listener))))
+
+  (define ai-server
+    (thread
+     (lambda ()
+       (define-values (in out) (tcp-accept ai-listener))
+       (define captured-request (read-request in))
+       (display (string-append "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                               (~a (string-length (chat-answer-json)))
+                               "\r\n\r\n" (chat-answer-json))
+                out)
+       (close-input-port in) (close-output-port out) (tcp-close ai-listener)
+       (set-box! captured captured-request))))
+
+  (parameterize ([current-data-dir
+                  (make-temporary-file "threadly-ai-tail-~a" 'directory)]
+                 [current-forum-base-url (format "http://127.0.0.1:~a" forum-port)]
+                 [ai-transcript-max-chars 100])
+    (ai-config-save! (format "http://127.0.0.1:~a/v1" ai-port)
+                     "sk-wire-test" "wire-model" "Chinese")
+    (define answer (ai-summarize-topic 7))
+    (check-equal? answer "the model said this"))
+
+  (sync/timeout 5 ai-server)
+  (sync/timeout 5 forum-server)
+  (define body (list-ref (unbox captured) 2))
+  (define doc (read-json (open-input-string body)))
+  (define transcript (hash-ref (list-ref (hash-ref doc 'messages) 1) 'content))
+  (check-true (string-contains? transcript "hello world")
+              "head posts still in the transcript")
+  (check-true (string-contains? transcript "tail post 3")
+              "the transcript carries posts past the reader's first chunk")
+  (check-true (string-contains? transcript "truncated at the length limit")
+              "the char budget truncates with a visible note"))
+
+(test-case "clip-transcript is a no-op under the budget"
+  (parameterize ([ai-transcript-max-chars 1000])
+    (check-equal? (clip-transcript "short") "short")))

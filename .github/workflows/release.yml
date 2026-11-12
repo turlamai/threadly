@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -13,13 +15,64 @@ concurrency:
 
 env:
   # Single source of truth for the rivet pin (same value as ci.yml); every
-  # install step below references this so a bump is one edit. Pinned to a
-  # rivet main revision (no tag yet) for the branded installer experience:
-  # dmg-background layout, WiX wizard bitmaps, deb desktop refresh.
-  RIVET_PIN: 9d766b4acab672844093204cb4845ef4ef933d2c
+  # install step below references this so a bump is one edit. v0.14.0 is
+  # the first rivet release tag containing the branded installer
+  # experience this pin was cut for: dmg-background layout, WiX wizard
+  # bitmaps, deb desktop refresh.
+  RIVET_PIN: v0.14.0
 
 jobs:
+  # Taskly-pattern preflight: prove the signing key matches both embedded
+  # updater trust roots before any platform build burns a runner. The
+  # publish job re-checks the secret as a second line of defense.
+  signing-preflight:
+    name: Verify update signing key before platform builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Racket CS
+        uses: Bogdanp/setup-racket@v1.15
+        with:
+          architecture: x64
+          distribution: full
+          variant: CS
+          version: '9.3'
+      - name: Install pinned Rivet (the signer)
+        run: |
+          set -euo pipefail
+          git clone https://github.com/turlamai/rivet.git "$RUNNER_TEMP/rivet"
+          git -C "$RUNNER_TEMP/rivet" checkout "$RIVET_PIN"
+          raco pkg install --auto --no-docs --name rivet --link "$RUNNER_TEMP/rivet"
+      - name: Sign a stub manifest with the release key
+        env:
+          UPDATE_ED25519_PRIVATE_KEY: ${{ secrets.UPDATE_ED25519_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${UPDATE_ED25519_PRIVATE_KEY:-}" ]]; then
+            echo "::error::UPDATE_ED25519_PRIVATE_KEY is required before release packaging"
+            exit 1
+          fi
+          # make-update-manifest.sh refuses a key that does not match the
+          # embedded Racket and macOS trust roots, and the signer validates
+          # the manifest schema — exercising it here fails the release
+          # before packaging starts. (scripts/test-release-signing.sh
+          # covers the negative case offline.)
+          TMP="$(mktemp -d)"
+          KEY_PEM="$(mktemp)"
+          trap 'rm -rf "$TMP" "$KEY_PEM"' EXIT
+          chmod 600 "$KEY_PEM"
+          printf '%s\n' "$UPDATE_ED25519_PRIVATE_KEY" > "$KEY_PEM"
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          for name in macos-arm64.zip macos-x64.zip windows-x64.zip linux-x64.tar.gz; do
+            # the manifest schema requires a positive payload size, so the
+            # stubs carry a marker line rather than being empty
+            printf 'threadly signing preflight stub\n' > "$TMP/threadly-$VERSION-$name"
+          done
+          bash scripts/make-update-manifest.sh "v$VERSION" "$TMP" "$KEY_PEM" > /dev/null
+          test -s "$TMP/update-manifest.json"
+
   macos:
+    needs: [signing-preflight]
     name: macOS (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -28,6 +81,16 @@ jobs:
         include:
           - { arch: arm64, runner: macos-latest, racket-arch: arm64 }
           - { arch: x64, runner: macos-15-intel, racket-arch: x64 }
+    env:
+      # Production signing lights up as soon as the account-level secrets
+      # exist (Developer ID p12 + App Store Connect API key) and applies to
+      # every workflow run that has them. Credential contract:
+      # DEVELOPER_ID_P12_B64 / DEVELOPER_ID_P12_PASSWORD / ASC_KEY_ID /
+      # ASC_ISSUER_ID / ASC_KEY_P8_B64; see rivet docs/production-signing.md.
+      MACOS_SIGNING_CONFIGURED: ${{ secrets.DEVELOPER_ID_P12_B64 != '' && secrets.ASC_KEY_P8_B64 != '' }}
+      # A tag push is a release: without credentials it must fail closed
+      # instead of silently shipping ad-hoc signed artifacts.
+      IS_TAG_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Racket CS
@@ -45,11 +108,63 @@ jobs:
           raco pkg install --auto --no-docs --name rivet --link "$RUNNER_TEMP/rivet"
       - name: Version preflight (VERSION == rivet.rktd == app/version.rkt == tag)
         run: bash scripts/check-release-version.sh "${{ github.ref_name }}"
+      - name: Provision Developer ID certificate
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        env:
+          DEVELOPER_ID_P12_B64: ${{ secrets.DEVELOPER_ID_P12_B64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          P12="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          printf '%s' "$DEVELOPER_ID_P12_B64" | base64 --decode > "$P12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$P12" -k "$KEYCHAIN" -P "$DEVELOPER_ID_P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          security list-keychains -s "$KEYCHAIN" $(security list-keychains | tr -d '"')
+          rm -f "$P12"
+          IDENTITY_NAME="$(security find-identity -v -p codesigning "$KEYCHAIN" | grep 'Developer ID Application' | head -1 | sed -E 's/^[^"]*"(.*)"$/\1/')"
+          test -n "$IDENTITY_NAME"
+          # rivet reads exactly these two (rivet docs/production-signing.md);
+          # release defaults to production mode, so exporting them alone
+          # flips packaging over once --development is dropped below.
+          {
+            echo "RIVET_MACOS_SIGN_IDENTITY=$IDENTITY_NAME"
+            echo "RIVET_MACOS_NOTARY_PROFILE=ASC_NOTARY"
+          } >> "$GITHUB_ENV"
+      - name: Store notarytool keychain profile
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_B64: ${{ secrets.ASC_KEY_P8_B64 }}
+        run: |
+          set -euo pipefail
+          P8="$RUNNER_TEMP/asc-api-key.p8"
+          printf '%s' "$ASC_KEY_P8_B64" | base64 --decode > "$P8"
+          xcrun notarytool store-credentials ASC_NOTARY \
+            --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --key "$P8"
+          rm -f "$P8"
       # DMG (human installer) + portable zip + SBOM + notices, launch
       # smoke included. The macOS update feed entry is the portable zip,
       # assembled by scripts/make-update-manifest.sh in the publish job.
-      - name: Release (DMG + portable zip)
+      # `raco rivet release` defaults to production packaging: with the
+      # credentials exported above it Developer ID-signs, notarizes,
+      # staples, and re-verifies inside rivet itself.
+      - name: Release (DMG + portable zip, Developer ID + notarized)
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        run: raco rivet release --without-updates
+      - name: Release (DMG + portable zip, ad-hoc dispatch smoke)
+        if: env.MACOS_SIGNING_CONFIGURED != 'true' && env.IS_TAG_RELEASE != 'true'
         run: raco rivet release --without-updates --development
+      - name: Release requires signing credentials
+        if: env.MACOS_SIGNING_CONFIGURED != 'true' && env.IS_TAG_RELEASE == 'true'
+        run: |
+          echo "::error::Tag releases must be production-signed: set the macOS signing secrets (DEVELOPER_ID_P12_B64, DEVELOPER_ID_P12_PASSWORD, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_B64) on this repository before tagging."
+          exit 1
       - name: Family naming + checksums
         run: |
           set -euo pipefail
@@ -75,6 +190,7 @@ jobs:
           path: dist/threadly-*
 
   windows:
+    needs: [signing-preflight]
     name: Windows (x64)
     runs-on: windows-latest
     steps:
@@ -123,20 +239,26 @@ jobs:
           path: dist/threadly-*
 
   linux:
+    needs: [signing-preflight]
     name: Linux (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { arch: x64, runner: ubuntu-latest, racket-arch: x64 }
+          # ubuntu-24.04, not ubuntu-latest: the 26.04 image's rpm 4.20+
+          # changed the BUILDROOT layout and %files glob semantics, which
+          # breaks rivet's create-rpm! (v0.15.0's first tag run failed
+          # there; the arm64 leg pins 24.04 and builds the same spec
+          # fine). Revisit when rivet's rpm path is 4.20-clean.
+          - { arch: x64, runner: ubuntu-24.04, racket-arch: x64 }
           - { arch: arm64, runner: ubuntu-24.04-arm, racket-arch: arm64 }
     steps:
       - uses: actions/checkout@v4
       # GitHub does not allow expressions in `uses:`, so this action pin
       # stays literal — keep it in sync with RIVET_PIN above.
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@9d766b4acab672844093204cb4845ef4ef933d2c
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.14.0
       # The source-built minimal runtime ships without the packages that
       # provide `raco make` (compiler-lib) and `raco ctool` (cext-lib),
       # which `raco rivet build` drives; crypto is a rivet/distribution
@@ -167,6 +289,44 @@ jobs:
         env:
           APPIMAGE_EXTRACT_AND_RUN: '1'
         run: raco rivet release --without-updates --development
+      # Wraps the tar.gz payload into a Flatpak bundle from the flatpak/
+      # manifest template (family contract: deb+rpm+AppImage+Flatpak+tar.gz).
+      # The manifest's module closure covers the two NEEDED entries outside
+      # the GNOME Platform runtime (liblz4.so.1, libtinfo.so.6). Like deb/rpm,
+      # the flatpak install shape is manual-by-design and stays out of the
+      # signed update feed. Runs before Family naming so the bundle joins
+      # the checksum sweep.
+      - name: Flatpak bundle
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH="${{ matrix.arch }}"
+          case "$ARCH" in x64) FPARCH=x86_64 ;; arm64) FPARCH=aarch64 ;; esac
+          sudo apt-get install --yes flatpak flatpak-builder
+          # User-level everything: runner accounts install runtimes and
+          # build without root. GNOME 50 is the oldest supported platform
+          # runtime (48 went EOL 2026-03-24); its glibc covers the
+          # ubuntu-built payload.
+          flatpak --user remote-add --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub \
+            "org.gnome.Platform/${FPARCH}/50" "org.gnome.Sdk/${FPARCH}/50"
+          # The manifest template carries version/arch/sha placeholders so
+          # the archive source's checksum is exact per release.
+          cp "dist/threadly-${VERSION}-linux-${ARCH}.tar.gz" .
+          SHA="$(sha256sum "threadly-${VERSION}-linux-${ARCH}.tar.gz" | cut -d' ' -f1)"
+          sed -e "s/__VERSION__/${VERSION}/" -e "s/__ARCH__/${ARCH}/" \
+              -e "s/__SHA256__/${SHA}/" \
+              flatpak/site.jrtx.threadly.yml > site.jrtx.threadly.gen.yml
+          # --disable-rofiles-fuse: runners have no /dev/fuse.
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=flatpak-repo flatpak-build site.jrtx.threadly.gen.yml
+          flatpak build-bundle flatpak-repo \
+            "threadly-${VERSION}-linux-${ARCH}.flatpak" site.jrtx.threadly stable
+          mv "threadly-${VERSION}-linux-${ARCH}.flatpak" dist/
+          rm -rf flatpak-build flatpak-repo \
+            "threadly-${VERSION}-linux-${ARCH}.tar.gz" site.jrtx.threadly.gen.yml
+          test -f "dist/threadly-${VERSION}-linux-${ARCH}.flatpak"
       - name: Family naming + checksums
         run: |
           set -euo pipefail
@@ -236,7 +396,7 @@ jobs:
             exit 1
           }
           rm -f "$KEY_PEM"
-          awk -v header="## ${VERSION}" '
+          awk -v header="## [${VERSION}]" '
             index($0, header) == 1 {on=1; next}
             on && /^## / {exit}
             on {print}
@@ -258,7 +418,8 @@ jobs:
             windows-x64.msi windows-x64.zip \
             linux-arm64.tar.gz linux-arm64.zip linux-x64.tar.gz linux-x64.zip \
             linux-amd64.deb linux-arm64.deb \
-            linux-aarch64.AppImage linux-x86_64.AppImage; do
+            linux-aarch64.AppImage linux-x86_64.AppImage \
+            linux-arm64.flatpak linux-x64.flatpak; do
             name="threadly-$VERSION-$suffix"
             test -s "dist/$name" || { echo "::error::Missing $name"; exit 1; }
             cp "dist/$name" public/
@@ -270,7 +431,8 @@ jobs:
           done
           cp dist/SHA256SUMS dist/update-manifest.json public/
           test -s public/update-manifest.json
-          test "$(find public -maxdepth 1 -type f -name 'threadly-*' | wc -l)" -eq 16
+          # 14 installers/archives + 2 RPMs + 2 Flatpak bundles.
+          test "$(find public -maxdepth 1 -type f -name 'threadly-*' | wc -l)" -eq 18
           (cd public && sha256sum -c SHA256SUMS)
           test -s /tmp/notes.md
           # Draft only; manual acceptance controls promotion to Latest.
@@ -279,3 +441,7 @@ jobs:
             --title "Threadly $VERSION" \
             --notes-file /tmp/notes.md \
             public/*
+      - name: Attest public artifact provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: public/*

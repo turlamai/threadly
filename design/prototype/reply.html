@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Threadly — Reply composer</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== reply 专属：Markdown 撰写器 sheet（540px，值同 ReplySheetView）==== */
+  .sheet { width:540px; }
+  .sheet .topic-sub { font-size:12.5px; color:var(--mute); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:-8px; }
+  .editor {
+    min-height:150px; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--bg);
+    font-size:14px; line-height:1.6; white-space:pre-wrap;
+  }
+  .editor .q { color:var(--mute); }
+  .foot-note { font-size:11.5px; color:var(--mute); }
+</style>
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-tray" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 0-6 6v3l-2 4h16l-2-4V9a6 6 0 0 0-6-6zm-2 15a2 2 0 0 0 4 0z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6z"/></symbol>
+</svg>
+<div class="window" id="app">
+  <div class="titlebar">
+    <div class="lights"><i></i><i></i><i></i></div>
+    <div class="t">Performance of for/fold vs named let over large hashes</div>
+    <div class="sp"></div>
+    <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+  </div>
+  <div class="body">
+    <aside class="sidebar">
+      <div class="search"><svg><use href="#i-search"/></svg>Search the archive</div>
+      <div class="sect">BROWSE</div>
+      <nav class="nav">
+        <div class="item"><svg><use href="#i-bell"/></svg>Notifications</div>
+        <div class="item"><svg><use href="#i-tray"/></svg>Latest</div>
+      </nav>
+      <div class="rows"></div>
+      <div class="foot"><svg style="color:var(--accent)"><use href="#i-person"/></svg><span class="u">samr</span><span class="sp"></span><span class="lnk">Sign out</span></div>
+    </aside>
+    <section class="main">
+      <div class="view" style="opacity:.5"></div>
+      <!-- 撰写器状态：postingReply 进行中 —— spinner + 全部按钮禁用；
+           草稿每键保存，失败加载/关闭撰写器/切换主题后保留，帖子发出才清除（Esc=Cancel、⏎=Reply） -->
+      <div class="scrim">
+        <div class="sheet">
+          <h2>Reply</h2>
+          <div class="topic-sub">Performance of for/fold vs named let over large hashes</div>
+          <div class="editor"><span class="q">&gt; Is that true even when the fold result is a list you cons onto?</span>
+
+Right — within noise on cons, but the boxed-accumulator case is where it diverges. Benchmark script attached below.</div>
+          <div class="row-end">
+            <span class="foot-note">Markdown · as samr</span>
+            <span class="sp" style="flex:1"></span>
+            <span class="spin" title="Posting…"></span>
+            <button class="btn ghost disabled">Cancel</button>
+            <button class="btn primary disabled">Reply</button>
+          </div>
+        </div>
+      </div>
+      <div class="statusbar"><span><kbd>esc</kbd> Cancel</span><span><kbd>⏎</kbd> Reply</span><span class="sp"></span><span>原型 · ◐ 切换亮暗</span></div>
+    </section>
+  </div>
+</div>
+<script>
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    document.getElementById('app').classList.toggle('dark');
+  });
+</script>
+</body>
+</html>

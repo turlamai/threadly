@@ -66,13 +66,22 @@ final class ScriptedTransport: RivetGeneratedRPCClient, @unchecked Sendable {
     /// topic-post row = (author avatar html created number post-id likes
     /// liked total)
     static func postRows(author: String, total: Int) -> RivetValue {
-        let row: [RivetValue] = [
-            .string(author), .string(""), .string("<p>from \(author)</p>"),
-            .string("2026-10-25T00:00:00.000Z"), .string("1"), .string("101"),
-            .string("0"), .string("0"), .string(String(total)),
-        ]
-        return .list([.list(row)])
+        .list([postRow(author: author, number: 1, postId: 101, total: total)])
     }
+
+    /// One topic-post row with explicit number/id.
+    static func postRow(author: String, number: Int, postId: Int,
+                        total: Int) -> RivetValue {
+        .list([
+            .string(author), .string(""), .string("<p>from \(author)</p>"),
+            .string("2026-10-25T00:00:00.000Z"), .string(String(number)),
+            .string(String(postId)), .string("0"), .string("0"),
+            .string(String(total)),
+        ])
+    }
+
+    /// A list of topic-post rows (a "page").
+    static func pageRows(_ rows: [RivetValue]) -> RivetValue { .list(rows) }
 
     static func authOut() -> RivetValue { .list([.string("out"), .string("")]) }
 }
@@ -273,32 +282,63 @@ struct ThreadlyStoreRaceTests {
         #expect(store.replySheetTopic == nil)
     }
 
-    /// The "load all" tail is bound to the same identity: a total from a
-    /// superseded thread must not move the current thread's count.
-    @Test func loadAllTotalStaysWithOwnThread() async throws {
+    /// The load-more page is bound to the same identity as every other
+    /// read: a page answering after the reader moved on is dropped whole.
+    @Test func loadMoreDropsSupersededPage() async throws {
         let transport = ScriptedTransport()
         transport.answer("auth-status") { _ in ScriptedTransport.authOut() }
         transport.answer("topic-open") { _ in
             ScriptedTransport.postRows(author: "B", total: 1)
         }
-        transport.answer("topic-posts-all") { _ in
-            try await transport.gate("loadall-77")
-            return ScriptedTransport.postRows(author: "B", total: 40)
+        transport.answer("topic-posts-page") { _ in
+            try await transport.gate("page-77")
+            return ScriptedTransport.pageRows([
+                ScriptedTransport.postRow(author: "B", number: 2, postId: 202, total: 40)
+            ])
         }
 
         let store = makeStore(transport)
-        await store.openTopicId(77, title: "Load-all topic")
-        #expect(store.postsTotal == 1)
+        await store.openTopicId(77, title: "Paged topic")
 
-        async let all = store.fetchAllPosts()
-        try await waitUntil { transport.isGated("loadall-77") }
-        // the user moves to another topic while "load all" is running
+        async let page = store.fetchMorePosts(topicId: 77, loadedCount: 1,
+                                              highestLoadedPostNumber: 1)
+        try await waitUntil { transport.isGated("page-77") }
+        // the user moves to another topic while the page is in flight
         await store.openTopicId(88, title: "Next topic")
-        transport.release("loadall-77")
-        let tail = await all
+        transport.release("page-77")
+        let dropped = await page
 
-        #expect(tail == nil)  // dropped as stale
+        #expect(dropped == nil)  // stale: belongs to the abandoned thread
         #expect(store.selectedTopic?.id == 88)
-        #expect(store.postsTotal == 1)  // B's own total, not the tail's 40
+    }
+
+    /// A page is deduped against the rendered frontier: rows at or below
+    /// the highest loaded post number are dropped, so a raced or
+    /// re-delivered batch can never double-render a post.
+    @Test func loadMoreDedupesAgainstRenderedFrontier() async throws {
+        let transport = ScriptedTransport()
+        transport.answer("auth-status") { _ in ScriptedTransport.authOut() }
+        transport.answer("topic-open") { _ in
+            ScriptedTransport.pageRows([
+                ScriptedTransport.postRow(author: "B", number: 1, postId: 101, total: 4),
+                ScriptedTransport.postRow(author: "B", number: 2, postId: 102, total: 4),
+            ])
+        }
+        transport.answer("topic-posts-page") { _ in
+            ScriptedTransport.pageRows([
+                ScriptedTransport.postRow(author: "B", number: 3, postId: 103, total: 4),
+                // a stale row below the frontier (stream shifted under us)
+                ScriptedTransport.postRow(author: "B", number: 2, postId: 102, total: 4),
+            ])
+        }
+
+        let store = makeStore(transport)
+        await store.openTopicId(77, title: "Paged topic")
+        #expect(store.posts.map(\.number) == [1, 2])
+
+        let page = await store.fetchMorePosts(topicId: 77, loadedCount: 2,
+                                              highestLoadedPostNumber: 2)
+        #expect(page?.tail.map(\.number) == [3])
+        #expect(page?.total == 4)
     }
 }

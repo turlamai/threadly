@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Threadly — Thread reader</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== thread 专属：工具栏 + 680px 阅读列（值同 ContentView.swift document()）==== */
+  .thread-head { padding:18px 28px 14px; border-bottom:1px solid var(--line); }
+  .thread-head h1 { font-size:22px; font-weight:600; line-height:1.3; max-width:680px; margin:0 auto; }
+  .thread-head .meta { display:flex; align-items:center; gap:10px; max-width:680px; margin:8px auto 0; }
+  .reader { max-width:680px; margin:0 auto; padding:22px 28px 48px; font-size:15px; line-height:1.6; }
+  .post { padding:16px 0 8px; border-bottom:1px solid var(--hairline); }
+  .post .pmeta { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--mute); margin-bottom:8px; }
+  .avatar { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:700; color:#fff; }
+  .pmeta .author { font-weight:600; color:var(--accent); }
+  .pmeta .dot { opacity:.45; }
+  .like { margin-left:auto; background:none; border:none; cursor:pointer; font-size:15px; line-height:1; color:var(--mute); padding:2px 6px; }
+  .like:hover { color:var(--accent); }
+  .like.liked { color:var(--liked); }
+  .like .n { font-size:12px; margin-left:3px; }
+  .post p { margin:10px 0; }
+  .post code { font-family:ui-monospace, "SF Mono", Menlo, monospace; font-size:13px; background:var(--fill); padding:1px 5px; border-radius:4px; }
+  .post pre { font-family:ui-monospace, "SF Mono", Menlo, monospace; font-size:13px; background:var(--fill); padding:12px 14px; border-radius:8px; overflow-x:auto; }
+  .post a { color:var(--accent); }
+  aside.quote { border-left:3px solid color-mix(in srgb, var(--accent) 55%, transparent); margin:10px 0; padding:6px 12px; background:var(--fill); border-radius:6px; }
+  aside.quote .qt { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); margin-bottom:4px; }
+  .morebar { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--mute); padding:14px 0 2px; }
+  .morebar button { display:inline-flex; align-items:center; gap:6px; background:none; border:1px solid color-mix(in srgb, var(--accent) 55%, transparent); border-radius:6px; color:var(--accent); font-size:12px; padding:3px 12px; cursor:default; }
+  .morebar button.disabled { opacity:.35; }
+  /* Jump-to-bottom 浮钮：右下角胶囊，到底即隐 */
+  .jump {
+    position:absolute; right:16px; bottom:14px; z-index:5; height:28px; display:inline-flex; align-items:center; gap:6px;
+    padding:0 12px; border-radius:99px; border:1px solid var(--line); background:var(--surface);
+    font-size:12px; font-weight:600; color:var(--accent); box-shadow:0 4px 14px rgba(0,0,0,.16);
+  }
+</style>
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-tray" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 0-6 6v3l-2 4h16l-2-4V9a6 6 0 0 0-6-6zm-2 15a2 2 0 0 0 4 0z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4z"/></symbol>
+  <symbol id="i-translate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h8M8 3v2c0 4-2 7-5 8"/><path d="M6 9c1.5 3 4 5.5 7 6.5"/><path d="m13 21 4.5-10L22 21m-7.5-3h6"/></symbol>
+  <symbol id="i-bubble" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6z"/></symbol>
+</svg>
+<div class="window" id="app">
+  <div class="titlebar">
+    <div class="lights"><i></i><i></i><i></i></div>
+    <div class="t">Performance of for/fold vs named let over large hashes</div>
+    <div class="sp"></div>
+    <!-- 统一工具栏：Refresh ⌘R / Summarize / Translate / Reply（仅登录）/ Open on the forum -->
+    <span class="toolbtn"><svg><use href="#i-refresh"/></svg>Refresh <kbd>⌘R</kbd></span>
+    <span class="toolbtn"><svg><use href="#i-star"/></svg>Summarize</span>
+    <span class="toolbtn"><svg><use href="#i-translate"/></svg>Translate</span>
+    <span class="toolbtn"><svg><use href="#i-bubble"/></svg>Reply</span>
+    <span class="toolbtn"><svg><use href="#i-globe"/></svg>Open on the forum</span>
+    <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+  </div>
+  <div class="body">
+    <aside class="sidebar">
+      <div class="search"><svg><use href="#i-search"/></svg>Search the archive</div>
+      <div class="sect">BROWSE</div>
+      <nav class="nav">
+        <div class="item"><svg><use href="#i-bell"/></svg>Notifications</div>
+        <div class="item"><svg><use href="#i-tray"/></svg>Latest</div>
+        <div class="item"><span class="cdot" style="background:#9d00ff"></span>Racket</div>
+        <div class="item"><span class="cdot" style="background:#2596be"></span>General</div>
+        <div class="item"><span class="cdot" style="background:#d98e2b"></span>Announcements</div>
+      </nav>
+      <div class="sect">RACKET</div>
+      <div class="rows">
+        <div class="item active">Performance of for/fold vs named let…</div>
+        <div class="item">Typed Racket: why won't this refine…</div>
+        <div class="item">Named-let idioms for fold over mutable…</div>
+      </div>
+      <div class="foot"><svg style="color:var(--accent)"><use href="#i-person"/></svg><span class="u">samr</span><span class="sp"></span><span class="lnk">Sign out</span></div>
+    </aside>
+    <section class="main">
+      <div class="view">
+        <div class="thread-head">
+          <h1>Performance of for/fold vs named let over large hashes</h1>
+          <div class="meta">
+            <span class="chip" style="--chip:#9d00ff">Racket</span>
+            <span class="counts"><span>47 posts</span><span>1.3k views</span><span>31 likes</span></span>
+          </div>
+        </div>
+        <div class="reader">
+          <section class="post">
+            <div class="pmeta"><span class="avatar" style="background:#4f7db3">b</span><span class="author">bogdan</span><span class="dot">·</span><span>#1</span><span class="dot">·</span><span title="2026-11-08 09:12">3d</span>
+              <button class="like" title="Like this post">♡</button></div>
+            <p>Nobody's wrong here — the difference only shows once the accumulator is boxed. A named let over <code>hash-ref</code>/<code>hash-set!</code> pays a re-hash on every step, while <code>for/fold</code> keeps the accumulator in a register until the loop body forces it out.</p>
+            <pre>(for/fold ([acc 0])
+          ([k (in-hash-keys h)])
+  (+ acc (hash-ref h k)))</pre>
+          </section>
+          <section class="post">
+            <div class="pmeta"><span class="avatar" style="background:#b36a4f">s</span><span class="author">samr</span><span class="dot">·</span><span>#2</span><span class="dot">·</span><span title="2026-11-08 10:40">3d</span>
+              <button class="like liked" title="Unlike this post">♥<span class="n">3</span></button></div>
+            <aside class="quote"><div class="qt">bogdan wrote:</div>
+              <p>A named let over <code>hash-ref</code>/<code>hash-set!</code> pays a re-hash on every step…</p></aside>
+            <p>Is that true even when the fold result is a list you cons onto? I benchmarked both on a 2M-key hash and got within noise of each other.</p>
+          </section>
+          <section class="post">
+            <div class="pmeta"><span class="avatar" style="background:#4f9e6e">l</span><span class="author">lexi</span><span class="dot">·</span><span>#3</span><span class="dot">·</span><span title="2026-11-09 08:05">2d</span>
+              <button class="like" title="Like this post">♡<span class="n">1</span></button></div>
+            <p>Within noise on cons, yes — but try accumulating into a mutable <code>box</code> and the gap opens up. See also the <a href="#">garbage-collector section</a> of the performance guide.</p>
+          </section>
+          <section class="post" style="border-bottom:none">
+            <div class="pmeta"><span class="avatar" style="background:#4f7db3">b</span><span class="author">bogdan</span><span class="dot">·</span><span>#4</span><span class="dot">·</span><span title="2026-11-09 11:58">2d</span>
+              <button class="like" title="Like this post">♡</button></div>
+            <p>Right. The boxed case is exactly where <code>for/fold</code>'s named-update clauses earn their keep.</p>
+            <!-- 批次加载：Showing X of Y · 进行中按钮禁用（Loading more…） -->
+            <div class="morebar">Showing 20 of 47 posts
+              <button class="disabled"><span class="spin"></span>Loading more…</button></div>
+          </section>
+        </div>
+      </div>
+      <div class="jump">↓ Jump to bottom</div>
+      <div class="statusbar"><span><kbd>⌘R</kbd> Refresh</span><span class="sp"></span><span>原型 · ◐ 切换亮暗</span></div>
+    </section>
+  </div>
+</div>
+<script>
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    document.getElementById('app').classList.toggle('dark');
+  });
+</script>
+</body>
+</html>

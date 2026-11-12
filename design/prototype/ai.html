@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Threadly — AI panel（BYOK）</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== ai 专属：AI 结果 sheet（560×460，值同 AIPanelView）+ CLI 配置现状卡 ==== */
+  .sheet { width:560px; max-height:460px; }
+  .ai-text { flex:1; overflow-y:auto; font-size:14px; line-height:1.65; user-select:text; }
+  .ai-text ul { margin:8px 0 8px 20px; }
+  .ai-text li { margin:4px 0; }
+  .disc { font-size:11.5px; color:var(--mute); }
+  .term {
+    width:560px; max-width:100%; background:#201f1c; color:#d9d4cb; border-radius:10px; padding:16px 18px;
+    font-family:ui-monospace, "SF Mono", Menlo, monospace; font-size:12px; line-height:1.75;
+    box-shadow:0 12px 32px rgba(31,29,26,.22);
+  }
+  .term .dim { color:#8f897d; }
+  .term .acc { color:#d08a6e; }
+  .cap { font-size:11.5px; color:var(--mute); text-align:center; }
+</style>
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-tray" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 0-6 6v3l-2 4h16l-2-4V9a6 6 0 0 0-6-6zm-2 15a2 2 0 0 0 4 0z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6z"/></symbol>
+</svg>
+<div class="window" id="app">
+  <div class="titlebar">
+    <div class="lights"><i></i><i></i><i></i></div>
+    <div class="t">Performance of for/fold vs named let over large hashes</div>
+    <div class="sp"></div>
+    <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+  </div>
+  <div class="body">
+    <aside class="sidebar">
+      <div class="search"><svg><use href="#i-search"/></svg>Search the archive</div>
+      <div class="sect">BROWSE</div>
+      <nav class="nav">
+        <div class="item"><svg><use href="#i-bell"/></svg>Notifications</div>
+        <div class="item"><svg><use href="#i-tray"/></svg>Latest</div>
+      </nav>
+      <div class="rows"></div>
+      <div class="foot"><svg style="color:var(--accent)"><use href="#i-person"/></svg><span class="u">samr</span><span class="sp"></span><span class="lnk">Sign out</span></div>
+    </aside>
+    <section class="main">
+      <div class="view" style="opacity:.5"></div>
+      <!-- AI 面板：结果态（可选中）；加载态 = spinner + "Asking the model — this can take a while…"；
+           失败态 = 空结果关面板 + 黄三角错误行进状态栏 -->
+      <div class="scrim">
+        <div class="sheet" style="height:460px">
+          <h2>Summary</h2>
+          <div class="ai-text">
+            <p>The thread settles a narrow question: <b>when does a named let beat <code>for/fold</code> over large hashes?</b></p>
+            <ul>
+              <li>Cons-only accumulators: both compile to the same loop shape — measured within noise on a 2M-key hash.</li>
+              <li>Boxed accumulators (mutable struct fields, <code>box</code>): the named-let re-hash per step opens a measurable gap.</li>
+              <li>Practical rule: keep the accumulator unboxed; reach for named updates in <code>for/fold</code> instead.</li>
+            </ul>
+          </div>
+          <div class="row-end">
+            <span class="disc">AI output can be wrong — check the thread.</span>
+            <span class="sp" style="flex:1"></span>
+            <button class="btn primary">Done</button>
+          </div>
+        </div>
+      </div>
+      <div class="statusbar"><span>BYOK 配置入口现状 = CLI；应用内不新增设置表单（不在范围）</span><span class="sp"></span><span>原型 · ◐ 切换亮暗</span></div>
+    </section>
+  </div>
+</div>
+<!-- 配置现状卡：ai-config 输出（key 掩码、0600 落盘、仅发往所配端点） -->
+<div class="term">
+  <div><span class="dim">$</span> racket app/cli.rkt ai-config</div>
+  <div>base-url:   https://api.openai.com/v1</div>
+  <div>api-key:    <span class="acc">sk-7f3a…49e2</span>   <span class="dim"># masked · 0600 · local only</span></div>
+  <div>model:      gpt-4o-mini</div>
+  <div>language:   Chinese</div>
+  <div>configured: yes</div>
+</div>
+<div class="cap">原型 · ◐ 切换亮暗 · 未配置态 = 工具栏按钮 help 提示 "configure with threadly ai-config"</div>
+<script>
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    document.getElementById('app').classList.toggle('dark');
+  });
+</script>
+</body>
+</html>

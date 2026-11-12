@@ -36,7 +36,9 @@ magic.
   never re-hits the forum.
 - **Read** — a thread view built for long discussions: posts in reading
   order, rendered from the forum's own HTML, with the author and original
-  thread one click away on the web.
+  thread one click away on the web. Long threads load in batches with the
+  scroll position intact, forum links inside a post open in the app, and
+  locally tracked read state marks topics with posts past your last read.
 - **Search** — full archive search, keyboard-first.
 
 The engine speaks the anonymous public Discourse JSON API (any forum URL
@@ -61,7 +63,12 @@ plus `.json`). No account, no scraping, no private endpoints.
 Working today: the Discourse engine (latest / topic / search / categories),
 the TTL disk cache with offline fallback, a terminal CLI, and native hosts
 for macOS, Windows and Linux. Signed-in actions and BYOK AI are implemented;
-packaged workflow evidence remains a separate delivery gate.
+packaged workflow evidence remains a separate delivery gate. The forum has
+user API key issuance disabled at the moment, so sign-in actions wait on
+the forum's own policy; anonymous reading is unaffected. The 0.15.0
+reading features (batched threads, in-app link following, local read
+tracking) ship on macOS first; Windows and Linux parity is tracked in
+issues #17 and #18.
 
 - [x] M0 — Discourse engine, disk cache, CLI, macOS SwiftUI shell
 - [x] M1 — Windows and Linux native hosts
@@ -89,6 +96,29 @@ racket app/cli.rkt translate 4416    # AI translation of a thread
 The key is stored 0600 in the data directory and never leaves the
 machine except to the configured endpoint. In the desktop apps, open a
 thread and use the Summarize / Translate toolbar buttons.
+
+## Install
+
+Download from [Releases](https://github.com/turlamai/threadly/releases/latest).
+Assets follow `threadly-<version>-<os>-<arch>.<ext>`:
+
+| Platform | Installers | Portable / in-app update payload |
+|---|---|---|
+| macOS 14+ (Apple silicon / Intel) | `threadly-<version>-macos-arm64.dmg` · `-x64.dmg` | `threadly-<version>-macos-arm64.zip` · `-x64.zip` |
+| Windows 10+ x64 | `threadly-<version>-windows-x64.msi` | `threadly-<version>-windows-x64.zip` |
+| Linux x64 / arm64 | `threadly-<version>-linux-<arch>.deb` · `.rpm` · `.AppImage` · `.flatpak` (app id `site.jrtx.threadly`; `flatpak --user install ./threadly-<version>-linux-<arch>.flatpak`) | `threadly-<version>-linux-<arch>.tar.gz` (the feed payload) · `-linux-<arch>.zip` |
+
+Every release carries a checked `SHA256SUMS`, and the in-app updater
+consumes the Ed25519-signed `update-manifest.json` feed (key id
+`threadly-2026-10`; Sigstore provenance: `gh attestation verify <file>
+-R turlamai/threadly`). The update behavior contract is recorded in
+[docs/UPDATE.md](docs/UPDATE.md).
+
+Package signing status: the macOS DMG is ad-hoc signed (Gatekeeper may
+warn on first launch — right-click the app and choose Open); the Windows
+MSI and zip are unsigned (SmartScreen may warn); the Linux packages
+require no paid publisher account. Update metadata itself is always
+Ed25519 signed and verified before anything is applied.
 
 ## Build from source
 

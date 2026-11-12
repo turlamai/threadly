@@ -7,7 +7,7 @@ public enum RivetGeneratedConfig {
     public static let moduleName = "backend"
     public static let entryName = "start"
     public static let displayName = "Threadly"
-    public static let version = "0.13.0"
+    public static let version = "0.15.0"
     public static let build: Int64 = 1
     public static let identifier = "site.jrtx.threadly"
     public static let releaseChannel = "stable"
@@ -212,6 +212,10 @@ public struct RivetAPI: Sendable {
     }
     public func topic_posts_all(id: String) async throws -> [[String]] {
         let rivetResult = try await client.call("topic-posts-all", arguments: [encode_String(id)])
+        return try decode__List_List_String_(rivetResult)
+    }
+    public func topic_posts_page(id: String, loaded_count: Int64) async throws -> [[String]] {
+        let rivetResult = try await client.call("topic-posts-page", arguments: [encode_String(id), encode_Int64(loaded_count)])
         return try decode__List_List_String_(rivetResult)
     }
     public func unlike_post(post_id: String) async throws -> Bool {

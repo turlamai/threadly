@@ -27,6 +27,7 @@
          parse-topic
          fetch-topic-all
          fetch-topic-all-batch-size
+         fetch-topic-posts-page
          fetch-search
          parse-search
          fetch-categories
@@ -215,22 +216,51 @@
       i))
   (define rest
     (for/list ([ids (in-list (chunk (fetch-topic-all-batch-size) rest-ids))])
-      (define doc2
-        (fetch-json
-         (string-append
-          (current-forum-base-url)
-          (format "/t/~a/posts.json?~a" id
-                  (string-join
-                   (for/list ([i (in-list ids)]) (format "post_ids[]=~a" i))
-                   "&")))))
-      (for/list ([p (in-list (hash-ref (hash-ref doc2 'post_stream (hasheq))
-                                       'posts (list)))])
-        (parse-post p))))
+      (fetch-posts-for-ids id ids)))
   ;; the stream lists post ids in reading order, so the merged list is
   ;; kept in post-number order no matter what the batches returned
   (values topic
           (sort (append head (append* rest))
                 < #:key forum-post-post-number)))
+
+;; One /t/<id>/posts.json slice for explicit post ids. Uncached like
+;; every slice call: each is one part of a moving whole, and caching
+;; slices would pin a thread to its old tail.
+(define (fetch-posts-for-ids id ids)
+  (define doc
+    (fetch-json
+     (string-append
+      (current-forum-base-url)
+      (format "/t/~a/posts.json?~a" id
+              (string-join
+               (for/list ([i (in-list ids)]) (format "post_ids[]=~a" i))
+               "&")))))
+  (for/list ([p (in-list (hash-ref (hash-ref doc 'post_stream (hasheq))
+                                   'posts (list)))])
+    (parse-post p)))
+
+;; The reader's next batch. The host has `loaded-count` posts on screen;
+;; the topic doc's stream lists every post id in reading order, so that
+;; count indexes straight into it — skip the shown ones, fetch the next
+;; slice, return it in post-number order. (values posts posts-count);
+;; empty posts means the thread is fully loaded. A stale-cache reload
+;; only ever appends to the stream, so old positions stay stable.
+(define (fetch-topic-posts-page id loaded-count)
+  (define n (max 0 loaded-count))
+  (define doc (fetch-json-cached (format "/t/~a.json" id)))
+  (hash-or-fail 'fetch-topic-posts-page doc)
+  (define topic (parse-topic-summary doc))
+  (define stream
+    (hash-ref (hash-ref doc 'post_stream (hasheq)) 'stream (list)))
+  (define rest
+    (if (>= n (length stream))
+        (list)
+        (fetch-posts-for-ids
+         id
+         (take (drop stream n)
+               (min (fetch-topic-all-batch-size) (- (length stream) n))))))
+  (values (sort rest < #:key forum-post-post-number)
+          (topic-summary-posts-count topic)))
 
 ;; A category page (/c/<slug>/<id>.json) carries the same topic_list shape
 ;; as latest — parse-latest handles it.

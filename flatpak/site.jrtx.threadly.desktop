@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Threadly
+Comment=Native client for the Racket community forum
+Exec=RivetHost
+Icon=site.jrtx.threadly
+Terminal=false
+Categories=Network;Utility;
+StartupWMClass=Threadly

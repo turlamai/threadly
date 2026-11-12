@@ -24,7 +24,9 @@
          ai-config-read
          ai-config-save!
          ai-summarize-topic
-         ai-translate-topic)
+         ai-translate-topic
+         ai-transcript-max-chars
+         clip-transcript)
 
 (struct ai-settings (base-url api-key model target-language) #:transparent)
 
@@ -134,13 +136,24 @@
         (cons "user" transcript)))
 
 (define (run-over-topic topic-id make-messages)
-  (define-values (topic posts) (fetch-topic topic-id))
+  (define-values (topic posts) (fetch-topic-all topic-id))
   (define settings (ai-config-read))
   (chat-completion
    settings
    (make-messages
-    (thread-transcript (topic-summary-title topic) posts)
+    (clip-transcript (thread-transcript (topic-summary-title topic) posts))
     (ai-settings-target-language settings))))
+
+;; Hard prompt budget: a 500-post transcript must not blow the model's
+;; context, so past this many characters the transcript is cut with a
+;; visible note. Char count, not bytes; Racket strings are code points.
+(define ai-transcript-max-chars (make-parameter 160000))
+
+(define (clip-transcript transcript)
+  (if (<= (string-length transcript) (ai-transcript-max-chars))
+      transcript
+      (string-append (substring transcript 0 (ai-transcript-max-chars))
+                     "\n\n[transcript truncated at the length limit]")))
 
 ;; Both entry points raise on network/API failure; callers surface the
 ;; message. Long calls (tens of seconds) are expected.

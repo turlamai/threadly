@@ -30,7 +30,7 @@ Browsing/search contact the public Discourse forum; login/reply operations act o
 
 ## Known limits
 
-Reading, searching, sign-in, replies, likes, notifications and BYOK AI are implemented; when a thread fails to load, the reader offers Retry and Back-to-list, and unsent replies are kept as drafts per thread until they post. Packaged-install qualification of these flows on every release channel is still pending — verify against the release notes of the build you use. Cached content may differ from edited/deleted source posts.
+Reading, searching, sign-in, replies, likes, notifications and BYOK AI are implemented; when a thread fails to load, the reader offers Retry and Back-to-list, and unsent replies are kept as drafts per thread until they post. The reading layer also tracks read state locally per device (an "N new" marker on topics with posts past your last read, plus restore of your reading position), loads long threads in batches, and follows same-forum links inside the app — on macOS today; Windows and Linux parity is tracked in issues #17/#18. The forum has user API key issuance disabled at the moment, so sign-in actions wait on the forum's own policy; anonymous reading is unaffected. Packaged-install qualification of these flows on every release channel is still pending — verify against the release notes of the build you use. Cached content may differ from edited/deleted source posts.
 
 ## Updates and removal
 
