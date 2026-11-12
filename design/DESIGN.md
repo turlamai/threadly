@@ -19,21 +19,16 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 - **反馈及时且不串屏**：批次加载有进行态与计数（Showing X of Y）；加载失败 Retry 原位、列表选择不动；被取代的响应作废，迟到的帖子永不落在错误的标题下；每个写操作有 pending 与 settle 两态。
 - **凭据不可见**：AI key 只经 CLI 配置、掩码显示、0600 落盘、仅发往所配端点；任何界面/错误/日志不得出现凭据明文。
 
-## Tokens（与实现 1:1）
+## Tokens（语义；值不在此复制）
 
-| Token | Light | Dark | 用途 |
-|---|---|---|---|
-| `--accent` | `#c15f3c` | `#c15f3c` | 陶土 accent：作者名/链接/按钮/类型图标/未读 pill（`DesignTokens.swift`，tint 固定不随外观） |
-| `--accent-soft` | `#f7e5dd` | `#3b2a22` | 选中行/更新横幅/disclosure 弱底（`DesignTokens.swift`） |
-| `--liked` | `#e0413e` | `#e0413e` | 已点赞爱心（唯一的红；`ContentView.swift` reader） |
-| `--bg` | `#faf7f2` | `#1b1a18` | 画布（`site/styles.css` 家族暖底） |
-| `--surface` | `#ffffff` | `#24221f` | 侧栏/浮层/工具栏（`site/styles.css`） |
-| `--raised` | `#f0ebe2` | `#2e2b27` | hover/占位弱底（`site/styles.css` `--chip-bg`） |
-| `--line` | `#e8e2d9` | `#35322d` | 壳层分隔（`site/styles.css`） |
-| `--ink` | `#1f1d1a` | `#ece9e2` | 主文字（`site/styles.css`） |
-| `--mute` | `#6b6660` | `#a6a099` | 次级文字/计数/时间戳（`site/styles.css` `--muted`） |
-| `--hairline` | `rgba(128,128,128,.2)` | 同 | 阅读器帖子分隔/表格线（`ContentView.swift` reader） |
-| `--fill` | `rgba(128,128,128,.08–.14)` | 同 | 行内代码/引用底/hover（`ContentView.swift` reader） |
+值类 token 真源 = `DesignTokens.swift`（accent 系）· `site/styles.css`（家族暖底中性系）· `ContentView.swift` reader（liked/hairline/fill）；原型 `design/prototype/shared.css` 与其一一对应，本表只记语义与层级。
+
+| Token | 语义 | 来源 |
+|---|---|---|
+| `--accent --accent-soft` | 陶土 accent：作者名/链接/按钮/类型图标/未读 pill + 选中行/更新横幅/disclosure 弱底（tint 固定不随外观） | `DesignTokens.swift` |
+| `--liked` | 已点赞爱心（唯一的红） | `ContentView.swift` reader |
+| `--bg --surface --raised --line --ink --mute` | 家族暖底中性系：画布 / 侧栏浮层工具栏 / hover 占位弱底 / 壳层分隔 / 文字 | `site/styles.css` |
+| `--hairline --fill` | 阅读器帖子分隔/表格线 / 行内代码引用底 hover | `ContentView.swift` reader |
 
 - **accent 不随外观提亮**是应用现状（SwiftUI `.tint` 固定）；站点暗色提亮为 `#d08a6e`，未进入应用——如未来对齐须先改本表并同步 `DesignTokens.swift`。
 - 壳层 chrome（侧栏/工具栏材质）在三宿主上跟随系统材质（AppKit sidebar / WinUI / GTK4），表中中性色是原型与语义基准，宿主材质允许差异；阅读器文档三宿主必须逐值一致（`docs/reader-design.md` 契约）。
