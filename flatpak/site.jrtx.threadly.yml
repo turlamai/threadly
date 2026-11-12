@@ -90,7 +90,11 @@ modules:
       # flatpak-builder strips the archive's leading directory: the payload
       # (RivetHost, runtime/, res/, racket/) lands flat in the build dir.
       - mkdir -p /app/threadly
-      - cp -a RivetHost runtime res racket /app/threadly/
+      - cp -a RivetHost runtime res /app/threadly/
+      # Transitional: payloads published before the engine rename (app/ →
+      # racket/) still carry app/; the fallback goes once the first
+      # post-rename release supersedes them everywhere.
+      - cp -a racket /app/threadly/ || cp -a app /app/threadly/
       # The bundle's `command` resolves on the sandbox PATH (/app/bin); the
       # payload lives outside it. A symlink keeps /proc/self/exe pointing
       # at the real binary so the runtime layout discovery works.
