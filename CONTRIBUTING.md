@@ -7,7 +7,7 @@ right to submit it.
 
 ## Ground rules
 
-1. **The wire contract is cross-platform.** `app/backend.rkt` declares
+1. **The wire contract is cross-platform.** `racket/backend.rkt` declares
    the typed RPC/Event/State surface. Changing any of it is a
    three-platform release: regenerate the checked-in clients with
    `raco rivet build` (`linux/GeneratedBackend.hpp`,
@@ -26,12 +26,12 @@ right to submit it.
    no unsigned fallback path. `scripts/test-release-signing.sh` proves
    an untrusted key can never produce an accepted feed — keep it green.
 4. **Version has one source.** `VERSION` must agree with `rivet.rktd`
-   and `app/version.rkt`; `scripts/check-release-version.sh` enforces it
+   and `racket/version.rkt`; `scripts/check-release-version.sh` enforces it
    and release CI additionally pins the tag to it.
 5. **Privacy is a feature.** The configured forum, the configured AI
    endpoint and the signed update feed are the application's only
    network use. No telemetry, no accounts. The politeness layer
-   (`app/core/cache.rkt`) exists so re-opening a view never re-hits the
+   (`racket/core/cache.rkt`) exists so re-opening a view never re-hits the
    forum — do not bypass it.
 6. **Fail honestly.** An unreachable forum serves the stale cache entry;
    a failed update verification aborts with the running version intact;
@@ -44,7 +44,7 @@ right to submit it.
 ## Before you push
 
 ```bash
-bash scripts/check-release-version.sh      # VERSION == rivet.rktd == app/version.rkt
+bash scripts/check-release-version.sh      # VERSION == rivet.rktd == racket/version.rkt
 bash scripts/test-release-signing.sh       # untrusted signing key must be rejected
 raco test tests/                           # backend contract tests
 ```
@@ -60,7 +60,7 @@ put a real OpenSSL 3 first on `PATH` (e.g.
 ## Reporting issues
 
 Include: OS + version, Threadly version (the About dialog or
-`racket app/cli.rkt doctor`), installation shape (DMG / portable zip /
+`racket racket/cli.rkt doctor`), installation shape (DMG / portable zip /
 MSI / AppImage / deb / rpm / tar.gz), the forum URL when the issue is
 forum-specific, and steps to reproduce. For update failures, include the
 error text from the dialog. Security issues go through

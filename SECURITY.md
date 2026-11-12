@@ -20,25 +20,25 @@ In scope:
 
 - Update trust: verification of the Ed25519-signed `update-manifest.json`
   and its artifacts, key handling and rotation
-  (`app/update.rkt` — embedded public key and key id `threadly-2026-10`,
+  (`racket/update.rkt` — embedded public key and key id `threadly-2026-10`,
   `macos-host/Sources/RivetHost/UpdateService.swift`,
   `scripts/make-update-manifest.sh`, `scripts/update-keys.sh`,
   `scripts/test-release-signing.sh`)
 - The forum API client: request signing and the Discourse user-API-key
-  flow (`app/core/discourse.rkt`, `app/auth.rkt` — the app-generated RSA
+  flow (`racket/core/discourse.rkt`, `racket/auth.rkt` — the app-generated RSA
   keypair, the `/user-api-key/new` handshake, nonce verification, the
   0600 user API key store). A forum response must never be able to
   escalate beyond reading what the user can read
 - Local cache handling: the on-disk response cache
-  (`app/core/cache.rkt` — sha1-named JSON entries under a TTL, stale
+  (`racket/core/cache.rkt` — sha1-named JSON entries under a TTL, stale
   entries served when the forum is unreachable) and the updater state
   (`<data-dir>/updater-state.json` behind its one-key write whitelist)
 - AI features: the OpenAI-compatible chat-completions client
-  (`app/ai.rkt`) — prompts and thread content go only to the
+  (`racket/ai.rkt`) — prompts and thread content go only to the
   user-configured base URL, and the API key stored via `ai-config` stays
   local
 - The host/backend boundary: hosts render and install; the Racket backend
-  (`app/backend.rkt`) decides. Crypto or policy sneaking into a native
+  (`racket/backend.rkt`) decides. Crypto or policy sneaking into a native
   host is a bug.
 
 Out of scope: the security of the Discourse forum the user connects to

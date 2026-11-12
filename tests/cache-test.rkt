@@ -7,8 +7,8 @@
          rackunit
          racket/file
          racket/port
-         "../app/core/cache.rkt"
-         "../app/core/paths.rkt")
+         "../racket/core/cache.rkt"
+         "../racket/core/paths.rkt")
 
 (define tmp (make-temporary-file "threadly-cache-test-~a" 'directory))
 

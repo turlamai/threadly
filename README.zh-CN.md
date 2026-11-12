@@ -88,10 +88,10 @@ Windows / Linux 的对齐排在 issue #17 和 #18。
 ```bash
 raco test tests/                     # 必须全绿(不需要网络)
 
-racket app/cli.rkt latest            # 终端里浏览
-racket app/cli.rkt topic <id>        # 读一个主题
-racket app/cli.rkt search "raco"     # 搜索归档
-racket app/cli.rkt doctor            # 本地环境自检(离线)
+racket racket/cli.rkt latest            # 终端里浏览
+racket racket/cli.rkt topic <id>        # 读一个主题
+racket racket/cli.rkt search "raco"     # 搜索归档
+racket racket/cli.rkt doctor            # 本地环境自检(离线)
 ```
 
 Threadly 遵循 [Rivet](https://github.com/turlamai/rivet) 架构:

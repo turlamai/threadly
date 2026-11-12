@@ -20,8 +20,8 @@
          racket/path
          racket/string
          racket/tcp
-         (file "../app/core/paths.rkt")
-         (prefix-in upd: "../app/update.rkt"))
+         (file "../racket/core/paths.rkt")
+         (prefix-in upd: "../racket/update.rkt"))
 
 (use-all-factories!)
 

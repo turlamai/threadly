@@ -37,7 +37,7 @@ OPENSSL_BIN_VALUE="$(find_openssl)" || {
 if [ -e "$KEY_PATH" ]; then
   echo "error: $KEY_PATH already exists." >&2
   echo "Rotating keys needs a release that trusts the NEXT key first —" >&2
-  echo "see the rotation notes in app/update.rkt. Move the old file away if
+  echo "see the rotation notes in racket/update.rkt. Move the old file away if
   you really mean it." >&2
   exit 1
 fi

@@ -18,7 +18,7 @@ name: Published upgrade qualification (N -> N+1)
 # from main. The N tag's updater is correct at its own pin (nine-field
 # updater-config, the feed's component-less artifacts predate component
 # matching), so no updater overlay is needed; if a future published tag
-# ever ships a broken updater, overlay app/update.rkt from main the same
+# ever ships a broken updater, overlay racket/update.rkt from main the same
 # way the driver is overlaid.
 
 on:

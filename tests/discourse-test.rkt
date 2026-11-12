@@ -9,7 +9,7 @@
          racket/list
          racket/runtime-path
          racket/string
-         "../app/core/discourse.rkt")
+         "../racket/core/discourse.rkt")
 
 (define-runtime-path fixtures-dir "fixtures")
 
@@ -112,8 +112,8 @@
 (require racket/file
          racket/string
          racket/tcp
-         (file "../app/core/paths.rkt")
-         (only-in "../app/core/cache.rkt" current-cache-ttl-seconds))
+         (file "../racket/core/paths.rkt")
+         (only-in "../racket/core/cache.rkt" current-cache-ttl-seconds))
 
 (define (read-request in)
   (define request-line (read-line in 'any))

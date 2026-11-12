@@ -39,7 +39,7 @@
 
 (define (usage)
   (string-join
-   (list "usage: racket app/cli.rkt [--json] [--no-cache] <command> [args]"
+   (list "usage: racket racket/cli.rkt [--json] [--no-cache] <command> [args]"
          ""
          "commands:"
          "  version              print the app version"

@@ -13,9 +13,9 @@
          racket/port
          racket/string
          racket/tcp
-         (file "../app/ai.rkt")
-         (file "../app/core/discourse.rkt")
-         (file "../app/core/paths.rkt"))
+         (file "../racket/ai.rkt")
+         (file "../racket/core/discourse.rkt")
+         (file "../racket/core/paths.rkt"))
 
 ;; ---- config store ------------------------------------------------------------
 

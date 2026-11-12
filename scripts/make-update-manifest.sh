@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build update-manifest.json for a release and sign it — the family
 # signed-wrapper format every rivet/distribution client verifies (see
-# app/update.rkt for the format contract).
+# racket/update.rkt for the format contract).
 #
 #   scripts/make-update-manifest.sh <tag> <dist-dir> [key-path]
 #
@@ -71,7 +71,7 @@ trap 'rm -f "$SCRIPT" "$KEY_DER" "$PUB_DER"' EXIT
 [[ "$(wc -c < "$PUB_DER")" -eq 44 ]] || {
   echo "error: signing key is not an Ed25519 key" >&2; exit 1; }
 PUBLIC_B64="$(tail -c 32 "$PUB_DER" | base64 | tr -d '\r\n')"
-EXPECTED_RACKET="$(sed -n 's/^(define current-update-public-key "\([^"]*\)".*/\1/p' "$ROOT/app/update.rkt")"
+EXPECTED_RACKET="$(sed -n 's/^(define current-update-public-key "\([^"]*\)".*/\1/p' "$ROOT/racket/update.rkt")"
 EXPECTED_SWIFT="$(sed -n 's/^[[:space:]]*static let publicKeyBase64 = "\([^"]*\)".*/\1/p' "$ROOT/macos-host/Sources/RivetHost/UpdateService.swift")"
 if [[ -z "$EXPECTED_RACKET" || -z "$EXPECTED_SWIFT" ||
       "$PUBLIC_B64" != "$EXPECTED_RACKET" || "$PUBLIC_B64" != "$EXPECTED_SWIFT" ]]; then

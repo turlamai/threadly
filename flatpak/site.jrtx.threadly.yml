@@ -13,7 +13,7 @@
 #   flatpak build-bundle repo threadly-<v>-linux-<arch>.flatpak \
 #     site.jrtx.threadly stable
 #
-# The payload is self-contained (embedded Racket CS runtime, res/, app/).
+# The payload is self-contained (embedded Racket CS runtime, res/, racket/).
 # readelf on the release binary shows exactly two NEEDED entries outside
 # the GNOME Platform runtime — liblz4.so.1 and libtinfo.so.6 — provided by
 # the two small modules below (the same closure as every family product;
@@ -36,12 +36,12 @@ finish-args:
   - --share=ipc
   # The product is a forum client: the backend talks to the configured
   # Discourse instance over its JSON API, calls the user-configured
-  # OpenAI-compatible AI endpoint (app/ai.rkt), and checks/downloads
+  # OpenAI-compatible AI endpoint (racket/ai.rkt), and checks/downloads
   # updates against GitHub Releases (SECURITY.md "Design notes"). No
   # network, no Threadly.
   - --share=network
   # No filesystem grants: forum cache, auth and updater state live under
-  # the data dir (app/core/paths.rkt — Racket's cache-dir), which resolves
+  # the data dir (racket/core/paths.rkt — Racket's cache-dir), which resolves
   # to XDG_CACHE_HOME and is redirected into the app's sandboxed home;
   # nothing else on disk is read or written.
 modules:
@@ -88,9 +88,9 @@ modules:
         path: flatpak/site.jrtx.threadly.desktop
     build-commands:
       # flatpak-builder strips the archive's leading directory: the payload
-      # (RivetHost, runtime/, res/, app/) lands flat in the build dir.
+      # (RivetHost, runtime/, res/, racket/) lands flat in the build dir.
       - mkdir -p /app/threadly
-      - cp -a RivetHost runtime res app /app/threadly/
+      - cp -a RivetHost runtime res racket /app/threadly/
       # The bundle's `command` resolves on the sandbox PATH (/app/bin); the
       # payload lives outside it. A symlink keeps /proc/self/exe pointing
       # at the real binary so the runtime layout discovery works.

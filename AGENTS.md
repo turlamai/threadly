@@ -19,8 +19,8 @@ iOS/iPadOS/Android 只保留按需求评估的方向，不是当前交付承诺�
 
 | 层 | 技术 | 目录 | 状态 |
 |---|---|---|---|
-| 引擎(Discourse API/缓存) | Racket 9.3 | `app/` | ✅ fixture 测试全绿 |
-| CLI | Racket | `app/cli.rkt` | ✅ latest/topic/search/categories/doctor |
+| 引擎(Discourse API/缓存) | Racket 9.3 | `racket/` | ✅ fixture 测试全绿 |
+| CLI | Racket | `racket/cli.rkt` | ✅ latest/topic/search/categories/doctor |
 | macOS 壳 | SwiftUI | `macos-host/` | ✅ 首片 |
 | Windows/Linux 壳 | WinUI 3 / GTK4+WebKitGTK | `windows/` `linux/` | ✅ M1(CI 编译门+launch smoke) |
 | Android 壳 | Kotlin(Rivet `platform/android`,Kotlin codegen 已就绪) | (待建) | M4 |
@@ -43,19 +43,19 @@ iOS/iPadOS/Android 只保留按需求评估的方向，不是当前交付承诺�
 
 | 模块 | 文件 | 说明 |
 |---|---|---|
-| HTTP | `app/core/http.rkt` | net/http-client 之上;手动跟重定向(≤5 跳,每跳保留 UA) |
-| Discourse API | `app/core/discourse.rkt` | fetch×4 + parse×4;parse 是纯函数,fixture 驱动测试,CI 无网络 |
-| 缓存 | `app/core/cache.rkt` | JSON 文件缓存 + TTL,键=URL sha1;断网时过期缓存仍可用(标注 cached) |
-| 路径 | `app/core/paths.rkt` | `$THREADLY_DATA_DIR` 覆盖 > 平台缓存目录;测试用 `current-data-dir` 参数注入 |
-| RVT1 面 | `app/backend.rkt` | 壳的唯一接口;行=定位字符串(Fulcrum 风格),布局见文件头注释 |
-| CLI | `app/cli.rkt` | version/latest/topic/search/categories/doctor;doctor 离线 |
+| HTTP | `racket/core/http.rkt` | net/http-client 之上;手动跟重定向(≤5 跳,每跳保留 UA) |
+| Discourse API | `racket/core/discourse.rkt` | fetch×4 + parse×4;parse 是纯函数,fixture 驱动测试,CI 无网络 |
+| 缓存 | `racket/core/cache.rkt` | JSON 文件缓存 + TTL,键=URL sha1;断网时过期缓存仍可用(标注 cached) |
+| 路径 | `racket/core/paths.rkt` | `$THREADLY_DATA_DIR` 覆盖 > 平台缓存目录;测试用 `current-data-dir` 参数注入 |
+| RVT1 面 | `racket/backend.rkt` | 壳的唯一接口;行=定位字符串(Fulcrum 风格),布局见文件头注释 |
+| CLI | `racket/cli.rkt` | version/latest/topic/search/categories/doctor;doctor 离线 |
 
 ## 快速命令
 
 ```bash
 raco test tests/                 # 必须全绿
-racket app/cli.rkt latest        # 冒烟(需网络;CI 冒烟只用 version/doctor)
-racket app/cli.rkt doctor
+racket racket/cli.rkt latest        # 冒烟(需网络;CI 冒烟只用 version/doctor)
+racket racket/cli.rkt doctor
 raco rivet build                 # 生成 GeneratedBackend.swift + 构建壳
 ```
 
@@ -70,7 +70,7 @@ pin、开发跟最新。图标改版走 `scripts/make-icons.py`,禁止手改生�
   `SHA256SUMS`,加单一签名 feed `update-manifest.json`;Windows/Linux
   宿主落地后按标杆补 msi+zip 与 deb+rpm+AppImage+tar.gz+zip 全矩阵。
 - 发版前必实测产物(下载 dmg/安装、启动、读帖)。
-- VERSION == rivet.rktd version == app/version.rkt,由
+- VERSION == rivet.rktd version == racket/version.rkt,由
   `scripts/check-release-version.sh` 三方校验,CI 跑。
 - CHANGELOG 是 Keep-a-Changelog 风格;发版前 `## x.y.z` 段必须先写,
   release 由此产 validate 门拦截。
@@ -121,7 +121,7 @@ pin、开发跟最新。图标改版走 `scripts/make-icons.py`,禁止手改生�
   (`webkitgtk-6.0` PkgConfig::WEBKIT)。
 - **本机 git 突然报 Xcode license**(Xcode/CLT 后台升级后 `/usr/bin/git`
   被挡,exit 69):临时用
-  `/Applications/Xcode.app/Contents/Developer/usr/bin/git`,根治需要用户
+  `/Applications/Xcode.racket/Contents/Developer/usr/bin/git`,根治需要用户
   跑 `sudo xcodebuild -license accept`(agent 无 sudo)。
 
 ## 组合定位（Portfolio placement）

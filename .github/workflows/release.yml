@@ -106,7 +106,7 @@ jobs:
           git clone https://github.com/turlamai/rivet.git "$RUNNER_TEMP/rivet"
           git -C "$RUNNER_TEMP/rivet" checkout "$RIVET_PIN"
           raco pkg install --auto --no-docs --name rivet --link "$RUNNER_TEMP/rivet"
-      - name: Version preflight (VERSION == rivet.rktd == app/version.rkt == tag)
+      - name: Version preflight (VERSION == rivet.rktd == racket/version.rkt == tag)
         run: bash scripts/check-release-version.sh "${{ github.ref_name }}"
       - name: Provision Developer ID certificate
         if: env.MACOS_SIGNING_CONFIGURED == 'true'
@@ -214,7 +214,7 @@ jobs:
       - name: Install crypto (rivet/distribution dependency)
         run: raco pkg install --auto --no-docs crypto
         shell: pwsh
-      - name: Version preflight (VERSION == rivet.rktd == app/version.rkt == tag)
+      - name: Version preflight (VERSION == rivet.rktd == racket/version.rkt == tag)
         shell: bash
         run: bash scripts/check-release-version.sh "${{ github.ref_name }}"
       - name: Release (MSI + portable zip)
@@ -279,7 +279,7 @@ jobs:
             libglib2.0-dev libwebkitgtk-6.0-dev \
             cmake ninja-build pkg-config file \
             rpm desktop-file-utils
-      - name: Version preflight (VERSION == rivet.rktd == app/version.rkt == tag)
+      - name: Version preflight (VERSION == rivet.rktd == racket/version.rkt == tag)
         run: bash scripts/check-release-version.sh "${{ github.ref_name }}"
       # tar.gz (the update-feed payload) + deb + rpm + AppImage + portable
       # zip + SBOM, launch smoke included. The AppImage carries its own

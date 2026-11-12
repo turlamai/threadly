@@ -27,7 +27,7 @@ RIVET_RKTD_VERSION="$(grep -o '"[0-9]*\.[0-9]*\.[0-9]*"' "$ROOT/rivet.rktd" | he
 
 # The backend version module embeds the release identity for the RPC, the
 # CLI and the update feed.
-grep -qF "(define app-version \"$VERSION\")" "$ROOT/app/version.rkt" || \
-  fail "app/version.rkt app-version does not match VERSION '$VERSION'"
+grep -qF "(define app-version \"$VERSION\")" "$ROOT/racket/version.rkt" || \
+  fail "racket/version.rkt app-version does not match VERSION '$VERSION'"
 
-echo "release preflight: version $VERSION is aligned (VERSION == rivet.rktd == app/version.rkt)"
+echo "release preflight: version $VERSION is aligned (VERSION == rivet.rktd == racket/version.rkt)"

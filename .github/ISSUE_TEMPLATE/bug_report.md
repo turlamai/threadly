@@ -16,13 +16,13 @@ A clear description of what happened and what you expected instead.
 Steps (or the exact CLI invocation) that trigger the behavior:
 
 ```
-racket app/cli.rkt latest --json
+racket racket/cli.rkt latest --json
 ```
 
 **Environment**
 
 - Platform: macOS / Windows / Linux (and version)
-- Threadly version: (About Threadly, or `racket app/cli.rkt version`)
+- Threadly version: (About Threadly, or `racket racket/cli.rkt version`)
 - Install shape: dmg / zip / MSI / portable zip / Linux package as shipped
   with the release
 

@@ -155,7 +155,7 @@
              (forum-category-color c))))))
 
 ;; ---- updates ---------------------------------------------------------------------------
-;; Family pattern (the full contract is app/update.rkt's module header): this
+;; Family pattern (the full contract is racket/update.rkt's module header): this
 ;; backend verifies and downloads the signed artifact; hosts own installation
 ;; and the silent 4-hour throttle. update-check returns a typed UpdateCheck
 ;; record so hosts never parse localized strings; start-download runs the

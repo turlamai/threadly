@@ -16,7 +16,7 @@ struct UpdateService {
     /// Ed25519 public key (base64, raw 32 bytes) — pair of the
     /// UPDATE_ED25519_PRIVATE_KEY GitHub secret that signs release
     /// manifests (generate: scripts/update-keys.sh). The same bytes the
-    /// engine embeds in app/update.rkt.
+    /// engine embeds in racket/update.rkt.
     static let publicKeyBase64 = "xwjCTB1ixovxtwrHoG1JnG3amjb9HBBIWuUHGIvr5Fs="
 
     /// The manifest must carry this key id — rotation ships a build that

@@ -13,10 +13,10 @@
          racket/string
          racket/system
          racket/tcp
-         (file "../app/core/http.rkt")
-         (file "../app/core/discourse.rkt")
-         (file "../app/core/paths.rkt")
-         (prefix-in auth: "../app/auth.rkt"))
+         (file "../racket/core/http.rkt")
+         (file "../racket/core/discourse.rkt")
+         (file "../racket/core/paths.rkt")
+         (prefix-in auth: "../racket/auth.rkt"))
 
 (define openssl
   (let ([p (auth:find-openssl)])

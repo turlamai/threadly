@@ -4,7 +4,7 @@ The family update contract lives in **turlamai/taskly** at
 [`shared/spec/UPDATE.md`](https://github.com/turlamai/taskly/blob/main/shared/spec/UPDATE.md);
 Threadly inherits its behavior contract. This page records how Threadly
 implements that contract and where its own trust facts live. The module
-header of `app/update.rkt` is the code-level authority.
+header of `racket/update.rkt` is the code-level authority.
 
 ## Behavior contract (inherited from taskly)
 
@@ -13,7 +13,7 @@ header of `app/update.rkt` is the code-level authority.
   Updates…` menu item (App menu below About on macOS, Help menu on
   Windows/Linux) that bypasses the throttle. Threadly implements the
   throttle host-side: macOS keeps the stamp in UserDefaults, Windows in a
-  stamp file under the temp directory (`app/update.rkt`, module header).
+  stamp file under the temp directory (`racket/update.rkt`, module header).
   The auto-check on/off user setting from the family contract is **not
   implemented yet** (Wave 2 evaluation).
 - **Silent mode**: network failure / rate limit / throttle is silently
@@ -22,7 +22,7 @@ header of `app/update.rkt` is the code-level authority.
 - **Newer version found**: semver compare, downgrades ignored, consent
   dialog before anything is applied. Up to date → up-to-date status.
 - **Verify then download**: the Racket backend verifies the Ed25519-signed
-  manifest and the artifact digest (`app/update.rkt`); hosts never
+  manifest and the artifact digest (`racket/update.rkt`); hosts never
   implement crypto. The backend owns the transfer
   (`<data-dir>/updates/`, progress via the `update-state` RPC); Linux
   AppImage installs swap the sibling release asset in place against its
@@ -37,7 +37,7 @@ header of `app/update.rkt` is the code-level authority.
 | Key id | `threadly-2026-10` |
 | Feed URL | `https://github.com/turlamai/threadly/releases/latest/download/update-manifest.json` |
 | Feed payloads | `threadly-<ver>-macos-arm64.zip`, `-macos-x64.zip`, `-windows-x64.zip`, `-linux-x64.tar.gz` (the four artifacts `scripts/make-update-manifest.sh` signs) |
-| Embedded public key | base64 raw 32 bytes — `app/update.rkt` `current-update-public-key` and `macos-host/Sources/RivetHost/UpdateService.swift` `publicKeyBase64` (kept identical; `scripts/make-update-manifest.sh` refuses a signing key that does not match both) |
+| Embedded public key | base64 raw 32 bytes — `racket/update.rkt` `current-update-public-key` and `macos-host/Sources/RivetHost/UpdateService.swift` `publicKeyBase64` (kept identical; `scripts/make-update-manifest.sh` refuses a signing key that does not match both) |
 | Key custody | private key only in the keys vault and the `UPDATE_ED25519_PRIVATE_KEY` GitHub secret; minted by `scripts/update-keys.sh` |
 
 ## Rotation

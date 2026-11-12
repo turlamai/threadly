@@ -9,7 +9,7 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 - **目标**：维护模式，不从零重设计。把既有 UI 的 HIG 标准显式化并钉死：让「论坛长帖阅读」这个主角在界面上站出来（chrome 是被移除的东西）；三宿主共享同一份语义契约（同语义，不等像素，沿用 AGENTS.md「交互契约与验证状态」）。
 - **原型范围**（6 屏 × 亮/暗）：① Browse 线程列表（英雄屏）② Thread 帖子详情阅读器 ③ Reply 回复撰写器 ④ Sign in 登录/账号态 ⑤ Notifications 通知 ⑥ AI 结果面板（BYOK 现状）。
 - **Exit 条件**：6 屏关键状态齐（空态/加载态/错误态均有实现出处，见组件词汇状态表）+ 交互逻辑与既有实现一致（加载身份绑定、草稿保留、Retry 原位）+ HIG 清单全过 + 用户评审通过。
-- **不在范围**：任何新功能——列表键盘导航（j/k）、富文本撰写器、应用内 BYOK 设置表单、移动端形态；`app/backend.rkt` RVT1 面与路由契约变更；新配色体系；商业化/定价 UI。
+- **不在范围**：任何新功能——列表键盘导航（j/k）、富文本撰写器、应用内 BYOK 设置表单、移动端形态；`racket/backend.rkt` RVT1 面与路由契约变更；新配色体系；商业化/定价 UI。
 
 ## 设计原则（HIG 内核 · Threadly 特有）
 

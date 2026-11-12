@@ -3,7 +3,7 @@ import SwiftUI
 import RivetRuntime
 
 /// One row of the sidebar / search results. Fields are positional strings
-/// from the backend; the layouts are documented in app/backend.rkt and must
+/// from the backend; the layouts are documented in racket/backend.rkt and must
 /// move together with the mapping code below.
 struct TopicRow: Identifiable, Hashable {
     let id: Int

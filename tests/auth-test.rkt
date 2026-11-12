@@ -13,8 +13,8 @@
          racket/runtime-path
          racket/string
          racket/system
-         (file "../app/core/paths.rkt")
-         (prefix-in auth: "../app/auth.rkt"))
+         (file "../racket/core/paths.rkt")
+         (prefix-in auth: "../racket/auth.rkt"))
 
 (define openssl
   (let ([p (auth:find-openssl)])

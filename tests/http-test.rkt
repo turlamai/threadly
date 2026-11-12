@@ -10,7 +10,7 @@
          racket/list
          racket/string
          racket/tcp
-         "../app/core/http.rkt")
+         "../racket/core/http.rkt")
 
 (define (read-request-headers in)
   (read-line in 'any) ; request line

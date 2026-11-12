@@ -87,10 +87,10 @@ chat-completions endpoint. Configure once from the terminal; every host
 and the CLI pick it up:
 
 ```bash
-racket app/cli.rkt ai-config --base-url https://api.openai.com/v1 \
+racket racket/cli.rkt ai-config --base-url https://api.openai.com/v1 \
     --api-key sk-... --model gpt-4o-mini --target-lang Chinese
-racket app/cli.rkt summary 4416      # AI summary of a thread
-racket app/cli.rkt translate 4416    # AI translation of a thread
+racket racket/cli.rkt summary 4416      # AI summary of a thread
+racket racket/cli.rkt translate 4416    # AI translation of a thread
 ```
 
 The key is stored 0600 in the data directory and never leaves the
@@ -125,10 +125,10 @@ Ed25519 signed and verified before anything is applied.
 ```bash
 raco test tests/                     # everything must stay green (no network needed)
 
-racket app/cli.rkt latest            # browse from the terminal
-racket app/cli.rkt topic <id>        # read a thread
-racket app/cli.rkt search "raco"     # search the archive
-racket app/cli.rkt doctor            # local environment check (offline)
+racket racket/cli.rkt latest            # browse from the terminal
+racket racket/cli.rkt topic <id>        # read a thread
+racket racket/cli.rkt search "raco"     # search the archive
+racket racket/cli.rkt doctor            # local environment check (offline)
 ```
 
 Threadly follows the [Rivet](https://github.com/turlamai/rivet)
