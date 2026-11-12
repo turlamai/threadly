@@ -2,6 +2,173 @@
 <html lang="zh-CN" data-kit-id="threadly" data-kit-lang-key="threadly-lang">
 
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threadly — Racket 社区论坛的原生客户端</title>
+<meta name="description" content="Threadly: 在浏览器之外浏览、阅读、搜索 racket.discourse.group。匿名公开 JSON API 加礼貌的磁盘缓存，论坛原色分类、帖子头像与 680px 阅读栏宽。Rivet 线——Racket 引擎驱动原生壳。">
+<link rel="stylesheet" href="styles.css">
+<script>
+  (function () {
+    var t = localStorage.getItem('threadly-theme');
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+    var l = localStorage.getItem('threadly-lang');
+    if (!l) l = (navigator.language || 'zh').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+    document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
+  })();
+</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?8e2445912635226bcba0c400bfb6079d";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<style>
+  #product-support { display:flex; flex-wrap:wrap; justify-content:center; gap:12px 24px; padding:24px; font:inherit; border-top:1px solid var(--border, #a8a29e); }
+  #product-support a:focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+  html:lang(en) #product-support .support-zh, html:lang(zh) #product-support .support-en { display:none; }
+</style>
+<style id="product-start-style">
+.product-availability{font-size:.95rem;line-height:1.65;max-width:72ch;margin:18px 0;opacity:.85} .hero .product-availability{margin-left:auto;margin-right:auto}
+.product-start{max-width:1120px;margin:64px auto;padding:32px 24px;border-top:1px solid var(--border,#aaa);font:inherit;line-height:1.65}
+.product-start h2{font-size:clamp(1.7rem,3vw,2.4rem);letter-spacing:-.025em;margin:0 0 16px}.product-start h3{font-size:1.05rem;margin:0 0 10px}.product-start p{margin:0 0 16px;max-width:74ch}.product-start-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:28px 0}.product-start a{text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere}.product-start a:focus-visible{outline:2px solid currentColor;outline-offset:5px}.product-start .start-links{display:flex;gap:16px 24px;flex-wrap:wrap}.product-start .start-status{font-weight:600}.product-start .start-limits{font-size:.95em}
+html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(max-width:700px){.product-start{margin:40px auto;padding:24px 20px}.product-start-grid{grid-template-columns:1fr;gap:18px}}
+</style>
+<style>.lang-menu li.lang-choice{padding:0}.lang-menu .lang-choice button{display:block;width:100%;padding:8px 12px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.lang-menu .lang-choice button:focus-visible{outline:2px solid currentColor;outline-offset:-2px;border-radius:4px}</style>
+<style id="visual-showcase-css">
+/* Visual Showcase: process illustration, intentionally not an app screenshot. */
+.vs-showcase{padding:clamp(48px,7vw,88px) 24px;background:var(--bg,var(--surface,#faf7f2));color:var(--text,var(--ink,#24211d))}
+.vs-showcase *{box-sizing:border-box}
+.vs-showcase .vs-wrap{max-width:1080px;margin:0 auto}
+.vs-showcase .vs-intro{text-align:center;max-width:680px;margin:0 auto 28px}
+.vs-showcase .vs-label{text-transform:uppercase;letter-spacing:.14em;font-size:.7rem;font-weight:700;color:var(--accent,#b85d3f)}
+.vs-showcase h2{font:inherit;font-size:clamp(1.65rem,3.3vw,2.5rem);font-weight:700;line-height:1.2;letter-spacing:-.04em;margin:12px 0}
+.vs-showcase .vs-lead,.vs-showcase .vs-caption{color:var(--text-2,var(--muted,#6b6660));line-height:1.7}
+.vs-showcase .vs-frame{padding:clamp(18px,3vw,34px);border:1px solid var(--border,var(--line,#e8e2d9));background:var(--bg-card,var(--surface,#fff));border-radius:24px;box-shadow:0 20px 60px rgba(36,29,18,.07);overflow:hidden}
+.vs-showcase .vs-stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.vs-showcase .vs-step{position:relative;min-height:170px;padding:22px 18px;border-radius:16px;background:var(--bg,var(--surface,#faf7f2));border:1px solid var(--border,var(--line,#e8e2d9))}
+.vs-showcase .vs-step:not(:last-child):after{content:"→";position:absolute;z-index:1;right:-15px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:var(--bg-card,var(--surface,#fff));color:var(--accent,#b85d3f);border:1px solid var(--border,var(--line,#e8e2d9))}
+.vs-showcase .vs-glyph{font-size:1.75rem;display:block;margin-bottom:24px;color:var(--accent,#b85d3f)}
+.vs-showcase .vs-step b{display:block;font-size:1.03rem;margin-bottom:7px}
+.vs-showcase .vs-step small{display:block;color:var(--text-2,var(--muted,#6b6660));font-size:.84rem;line-height:1.5}
+.vs-showcase .vs-caption{font-size:.79rem;text-align:center;margin:16px 0 0}
+.vs-showcase .vs-art{margin-bottom:22px;background:var(--bg,var(--surface,#f6f3ed));border:1px solid var(--border,var(--line,#e8e2d9));border-radius:18px;padding:22px;overflow:hidden;min-height:185px}
+.vs-showcase .vs-task-art{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.vs-showcase .vs-mini-board{background:var(--bg-card,var(--surface,#fff));border-radius:14px;border:1px solid var(--border,var(--line,#e8e2d9));padding:15px;box-shadow:0 6px 24px rgba(10,10,10,.04)}
+.vs-showcase .vs-mini-title{font-size:.76rem;color:var(--text-2,var(--muted,#6b6660));font-weight:700;margin-bottom:12px}
+.vs-showcase .vs-mini-task{display:flex;align-items:center;gap:10px;padding:9px 3px;border-top:1px solid var(--border,var(--line,#e8e2d9));font-size:.9rem}
+.vs-showcase .vs-ring{flex:none;height:17px;width:17px;border:2px solid var(--accent,#b85d3f);border-radius:50%}
+.vs-showcase .vs-ring.done{background:var(--accent,#b85d3f);position:relative}.vs-showcase .vs-ring.done:after{content:"✓";color:#fff;font-size:12px;position:absolute;left:2px;top:-3px}
+.vs-showcase .vs-mini-tag{margin-left:auto;color:var(--accent,#b85d3f);background:var(--accent-soft,#f7e5dd);font-size:.7rem;padding:3px 6px;border-radius:6px}
+.vs-showcase .vs-reader-art{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.vs-showcase .vs-paper,.vs-showcase .vs-annotation{border-radius:14px;background:var(--bg-card,var(--surface,#fff));border:1px solid var(--border,var(--line,#e8e2d9));padding:18px}
+.vs-showcase .vs-paper-title{font-size:.75rem;letter-spacing:.1em;color:var(--text-2,var(--muted,#6b6660));margin-bottom:22px}
+.vs-showcase .vs-line{height:9px;background:var(--border,var(--line,#e8e2d9));border-radius:8px;margin:12px 0;max-width:100%}
+.vs-showcase .vs-line.short{width:57%}.vs-showcase .vs-line.mid{width:82%}
+.vs-showcase .vs-highlight{height:15px;border-radius:3px;width:72%;background:color-mix(in srgb,var(--accent,#d97757) 32%,transparent)}
+.vs-showcase .vs-note-label{font-size:.72rem;letter-spacing:.09em;color:var(--accent,#b85d3f);font-weight:800}
+.vs-showcase .vs-note-body{font-size:.93rem;line-height:1.7;margin:18px 0}
+.vs-showcase .vs-note-foot{font-size:.75rem;color:var(--text-2,var(--muted,#6b6660))}
+html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
+@media(max-width:700px){.vs-showcase .vs-stage{grid-template-columns:1fr}.vs-showcase .vs-step{min-height:120px}.vs-showcase .vs-step:not(:last-child):after{right:calc(50% - 14px);top:auto;bottom:-15px;transform:rotate(90deg)}.vs-showcase .vs-glyph{margin-bottom:12px}.vs-showcase .vs-reader-art{grid-template-columns:1fr 1fr}.vs-showcase .vs-art{padding:14px}}
+@media(prefers-reduced-motion:reduce){.vs-showcase *, .vs-showcase *:before,.vs-showcase *:after{animation:none!important;transition:none!important}}
+</style></head>
+<body>
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#">Threadly</a>
+    <nav class="nav-links">
+      <a href="#why" data-i18n="nav.why">为什么需要</a>
+      <a href="#principles" data-i18n="nav.principles">设计原则</a>
+      <a href="#start" data-i18n="nav.start">三步开始</a>
+      <a href="#download" data-i18n="nav.download">下载</a>
+      <a href="guide.html" data-i18n="nav.guide">使用手册</a>
+      <a href="https://github.com/turlamai/threadly" data-i18n="nav.github">GitHub</a>
+      <div class="lang-dropdown-wrapper">
+        <button class="lang-btn" type="button" aria-label="Switch language">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span id="current-lang-label">English</span>
+        </button>
+        <ul class="lang-menu">
+          <li class="lang-choice"><button type="button" onclick="setLanguage('en')">English</button></li>
+          <li class="lang-choice"><button type="button" onclick="setLanguage('zh')">简体中文</button></li>
+        </ul>
+      </div>
+      <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">◐</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="kicker" data-i18n="kicker">原生客户端 · 登录回帖 · AI 摘要与翻译</p>
+    <h1 data-i18n="hero-title">在浏览器之外，读 Racket 社区。</h1>
+<p class="reader-en product-availability" lang="en">Development preview. Free community reader in maintenance mode under AGPL-3.0. No commercial account or paid mobile offer.</p><p class="reader-zh product-availability" lang="zh">开发预览。AGPL-3.0 许可的免费社区阅读器，处于维护模式；不要求商业账号，也不销售移动端。</p>
+    <p class="lede" data-i18n="hero-lede">
+      Racket 的设计讨论、提案与生态动态都发生在 racket.discourse.group——
+      而浏览器给这些长技术帖套上了一层层外壳。Threadly 用匿名公开的 JSON
+      API 把它们带回原生窗口：论坛原色分类、帖子头像、680px 的阅读栏宽。
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/turlamai/threadly/releases/latest" data-release-suffix="macos-arm64.dmg" data-i18n="hero.download">获取 Threadly</a>
+      <a class="btn btn-secondary" href="https://github.com/turlamai/threadly" data-i18n="hero.source">查看源码</a>
+    </div>
+  </section><section class="vs-showcase" id="visual-showcase" aria-label="Product workflow concept"><div class="vs-wrap"><div class="vs-intro"><span class="vs-label">PRODUCT IN CONTEXT · 产品如何工作</span><h2><span class="vs-zh" lang="zh-CN">把 Racket 论坛内容带回阅读窗口。</span><span class="vs-en" lang="en">Bring the Racket forum into a reading window.</span></h2><p class="vs-lead"><span class="vs-zh" lang="zh-CN">论坛内容与账号仍以原社区为准；Threadly 是处于维护期的桌面阅读器。</span><span class="vs-en" lang="en">Forum content and accounts remain authoritative on the community forum. Threadly is a desktop reader in maintenance mode.</span></p></div><div class="vs-frame"><div class="vs-art vs-task-art"><div class="vs-mini-board"><div class="vs-mini-title">SOURCE / INPUT</div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Forum topics</span></div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Public Discourse API</span></div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Source links</span></div></div><div class="vs-mini-board"><div class="vs-mini-title">RESULT / OUTPUT</div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Native reading</span></div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Thread navigation</span></div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Search & revisit</span></div></div></div><div class="vs-stage"><div class="vs-step"><span class="vs-glyph" aria-hidden="true">☷</span><b><span class="vs-zh" lang="zh-CN">浏览主题</span><span class="vs-en" lang="en">Browse</span></b><small><span class="vs-zh" lang="zh-CN">查看社区最近讨论</span><span class="vs-en" lang="en">Find recent discussions</span></small></div><div class="vs-step"><span class="vs-glyph" aria-hidden="true">▤</span><b><span class="vs-zh" lang="zh-CN">阅读长帖</span><span class="vs-en" lang="en">Read</span></b><small><span class="vs-zh" lang="zh-CN">专注查看正文和回复</span><span class="vs-en" lang="en">Read posts and replies</span></small></div><div class="vs-step"><span class="vs-glyph" aria-hidden="true">⌕</span><b><span class="vs-zh" lang="zh-CN">回到来源</span><span class="vs-en" lang="en">Source</span></b><small><span class="vs-zh" lang="zh-CN">需要时返回论坛原文</span><span class="vs-en" lang="en">Open the original forum thread</span></small></div></div><p class="vs-caption"><span class="vs-zh" lang="zh-CN">概念工作流程图，非当前产品截图；以实际发布版本和用户手册为准。</span><span class="vs-en" lang="en">Conceptual workflow—not a current screenshot. Refer to the released build and user guide.</span></p></div></div></section>
+
+  <section id="why" class="section">
+    <h2 data-i18n="why-title">为什么需要</h2>
+    <div class="grid three">
+      <div class="card">
+        <div class="card-icon">🪟</div>
+        <h3 data-i18n="w1-title">浏览器不是阅读器</h3>
+        <p data-i18n="w1-body">每页论坛都在加载一个 Web 应用——脚本、侧栏、层层 chrome。切个窗口，读了一半的长帖就找不到了。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📖</div>
+        <h3 data-i18n="w2-title">长帖配得上更好的排版</h3>
+        <p data-i18n="w2-body">关于类型系统和宏展开器的讨论动辄上百楼：680px 阅读栏宽、帖子头像、论坛原色分类，长文终于有了阅读的样子。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🖥️</div>
+        <h3 data-i18n="w3-title">桌面端本来就没有</h3>
+        <p data-i18n="w3-body">Discourse 只有官方 iOS/Android 应用，桌面用户拿到的只是一个网址。Threadly 补上这块，且与产品线一样全平台。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="principles" class="section alt">
+    <h2 data-i18n="principles-title">设计原则</h2>
+    <div class="grid two">
+      <div class="card">
+        <h3 data-i18n="p1-title">论坛是唯一事实源</h3>
+        <p data-i18n="p1-body">Threadly 只缓存、不分叉：编辑、删除、挪版永远以论坛为准，每个帖子都能一键跳回原链。</p>
+      </div>
+      <div class="card">
+        <h3 data-i18n="p2-title">做好公民</h3>
+        <p data-i18n="p2-body">只打公开端点，响应全部落盘缓存并带 TTL，请求带身份标识的 User-Agent，收到 429 老实退避。</p>
+      </div>
+      <div class="card">
+        <h3 data-i18n="p3-title">凭据留在本机</h3>
+        <p data-i18n="p3-body">匿名即可读；登录走 Discourse user API key 流，凭据只存本机——回帖、点赞、通知不经过任何第三方。</p>
+      </div>
+      <div class="card">
+        <h3 data-i18n="p4-title">长文优先</h3>
+        <p data-i18n="p4-body">阅读体验就是产品本身；要移除的恰恰是层层 chrome。Racket 引擎 + 第一方原生 UI，没有 WebView 套壳的网页应用。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="start" class="section">
+    <h2 data-i18n="start-title">三步开始</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h3 data-i18n="s1-title">下载安装</h3>
+          <p data-i18n="s1-body">macOS 拖进应用程序文件夹即可——不注册也能读，没有遥测。</p>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Threadly — Racket 社区论坛的原生客户端</title>
@@ -16,7 +183,6 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Threadly — a native client for the Racket community forum">
     <meta name="twitter:description" content="Read the Racket community outside the browser. Native, cached politely, credentials stay local. Free, AGPL-3.0.">
-
     <!-- Theme + language pre-paint: no flash before the stylesheet paints.
          Storage keys are the site's historical keys (threadly-theme /
          threadly-lang — carried forward via data-kit-lang-key on <html>)
@@ -37,7 +203,6 @@
             document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
         })();
     </script>
-
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%23D97757'/%3E%3Cpath d='M140 186 h232 M140 256 h172 M140 326 h232' stroke='%23FFFFFF' stroke-width='34' stroke-linecap='round'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="family.css">
     <link rel="stylesheet" href="site.css">
@@ -45,8 +210,6 @@
     <link rel="preload" href="fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
     <script src="family.js" defer></script>
 </head>
-
-<body>
     <header class="kit-nav">
         <div class="kit-container kit-nav-inner">
             <a class="kit-brand" href="/">
