@@ -83,7 +83,7 @@ modules:
         path: threadly-__VERSION__-linux-__ARCH__.tar.gz
         sha256: __SHA256__
       - type: file
-        path: assets/icon_512.png
+        path: assets/icon-512.png
       - type: file
         path: flatpak/site.jrtx.threadly.desktop
     build-commands:
@@ -96,7 +96,7 @@ modules:
       # at the real binary so the runtime layout discovery works.
       - mkdir -p /app/bin
       - ln -s /app/threadly/RivetHost /app/bin/RivetHost
-      - install -Dm644 icon_512.png
+      - install -Dm644 icon-512.png
                     /app/share/icons/hicolor/512x512/apps/site.jrtx.threadly.png
       - install -Dm644 site.jrtx.threadly.desktop
                     /app/share/applications/site.jrtx.threadly.desktop
