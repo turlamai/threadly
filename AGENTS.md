@@ -57,6 +57,9 @@ raco test tests/                 # 必须全绿
 racket racket/cli.rkt latest        # 冒烟(需网络;CI 冒烟只用 version/doctor)
 racket racket/cli.rkt doctor
 raco rivet build                 # 生成 GeneratedBackend.swift + 构建壳
+raco rivet schema check rivet-schema.json --json
+                                 # RPC 兼容性基线,改 backend 的 RVT1 面后
+                                 # 用 raco rivet schema --output 重新生成入库
 ```
 
 Rivet 工作约定:开发前 pull `~/Codes/rivet`,pull 后清 `compiled/` 再

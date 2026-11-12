@@ -1,0 +1,560 @@
+{
+  "device-rpcs": [],
+  "enums": [],
+  "events": [
+    {
+      "name": "notify",
+      "type": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    },
+    {
+      "name": "open-url",
+      "type": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    },
+    {
+      "name": "update-available",
+      "type": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    }
+  ],
+  "format": "rivet-schema",
+  "format-version": 1,
+  "records": [
+    {
+      "fields": [
+        {
+          "name": "status",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "username",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "AuthStatus"
+    },
+    {
+      "fields": [
+        {
+          "name": "status",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "error",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "String"
+            },
+            "kind": "optional"
+          }
+        },
+        {
+          "name": "current-version",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "available-version",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "String"
+            },
+            "kind": "optional"
+          }
+        },
+        {
+          "name": "build",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "Int64"
+            },
+            "kind": "optional"
+          }
+        },
+        {
+          "name": "published-at",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "String"
+            },
+            "kind": "optional"
+          }
+        },
+        {
+          "name": "installer",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "String"
+            },
+            "kind": "optional"
+          }
+        },
+        {
+          "name": "size-bytes",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "Int64"
+            },
+            "kind": "optional"
+          }
+        }
+      ],
+      "name": "UpdateCheck"
+    },
+    {
+      "fields": [
+        {
+          "name": "phase",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "percent",
+          "type": {
+            "kind": "scalar",
+            "name": "Int64"
+          }
+        },
+        {
+          "name": "message",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "String"
+            },
+            "kind": "optional"
+          }
+        },
+        {
+          "name": "downloaded-path",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "String"
+            },
+            "kind": "optional"
+          }
+        },
+        {
+          "name": "available-version",
+          "type": {
+            "element": {
+              "kind": "scalar",
+              "name": "String"
+            },
+            "kind": "optional"
+          }
+        }
+      ],
+      "name": "UpdateState"
+    }
+  ],
+  "rpcs": [
+    {
+      "arguments": [],
+      "name": "ai-status",
+      "result": {
+        "kind": "scalar",
+        "name": "Bool"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "topic-id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "ai-summarize",
+      "result": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "topic-id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "ai-translate",
+      "result": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "auth-begin",
+      "result": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "code",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "auth-complete",
+      "result": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "auth-sign-out",
+      "result": {
+        "kind": "scalar",
+        "name": "Void"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "auth-status",
+      "result": {
+        "kind": "record",
+        "name": "AuthStatus"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "categories-list",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "slug",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "category-topics-list",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "health",
+      "result": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "page",
+          "type": {
+            "kind": "scalar",
+            "name": "Int64"
+          }
+        },
+        {
+          "name": "fresh",
+          "type": {
+            "kind": "scalar",
+            "name": "Bool"
+          }
+        }
+      ],
+      "name": "latest-list",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "post-id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "like-post",
+      "result": {
+        "kind": "scalar",
+        "name": "Bool"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "notifications-list",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "notifications-mark-read",
+      "result": {
+        "kind": "scalar",
+        "name": "Void"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "open-releases",
+      "result": {
+        "kind": "scalar",
+        "name": "Void"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "topic-id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "body",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "post-create",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "q",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "search-list",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "start-download",
+      "result": {
+        "kind": "scalar",
+        "name": "Void"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "topic-open",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "topic-posts-all",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        },
+        {
+          "name": "loaded-count",
+          "type": {
+            "kind": "scalar",
+            "name": "Int64"
+          }
+        }
+      ],
+      "name": "topic-posts-page",
+      "result": {
+        "element": {
+          "element": {
+            "kind": "scalar",
+            "name": "String"
+          },
+          "kind": "list"
+        },
+        "kind": "list"
+      }
+    },
+    {
+      "arguments": [
+        {
+          "name": "post-id",
+          "type": {
+            "kind": "scalar",
+            "name": "String"
+          }
+        }
+      ],
+      "name": "unlike-post",
+      "result": {
+        "kind": "scalar",
+        "name": "Bool"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "update-check",
+      "result": {
+        "kind": "record",
+        "name": "UpdateCheck"
+      }
+    },
+    {
+      "arguments": [],
+      "name": "update-state",
+      "result": {
+        "kind": "record",
+        "name": "UpdateState"
+      }
+    }
+  ],
+  "rvt-protocol": 1,
+  "states": [
+    {
+      "name": "version",
+      "type": {
+        "kind": "scalar",
+        "name": "String"
+      }
+    }
+  ]
+}
