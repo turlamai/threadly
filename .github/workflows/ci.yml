@@ -15,9 +15,9 @@ concurrency:
 env:
   # Single source of truth for the rivet pin (same value as release.yml);
   # every rivet checkout below references this so a bump is one edit.
-  # v0.14.0 is the first rivet release tag containing the branded
-  # installer experience this pin was cut for.
-  RIVET_PIN: v0.14.0
+  # This pin sits past v0.14.0, the first rivet release containing the
+  # branded installer experience this pin was cut for.
+  RIVET_PIN: d6e98896fffa3f484e9ea0162d807ad2518c1538
 
 jobs:
   backend:
