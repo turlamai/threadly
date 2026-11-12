@@ -2,7 +2,7 @@
 
 原型（`design/prototype/`）与实现（`macos-host/`、`windows/`、`linux/` 三宿主）都遵循本文件；改视觉先改这里，再同步实现。
 Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accent / accent-soft）、`ContentView.swift` 内嵌 reader 样式（排版、发丝线、liked 色、列宽）与 `site/styles.css` 家族暖色变量（壳层中性色），保证原型 → 三宿主实现零翻译成本。
-阅读器 cooked-HTML 元素级契约另见 `design/reader/DESIGN.md`（0.15.0 已交付，与本文件叠加使用，此处不重复）。
+阅读器 cooked-HTML 元素级契约另见 `docs/reader-design.md`（0.15.0 已交付，与本文件叠加使用，此处不重复）。
 
 ## Brief（2026-11-11）
 
@@ -36,14 +36,14 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 | `--fill` | `rgba(128,128,128,.08–.14)` | 同 | 行内代码/引用底/hover（`ContentView.swift` reader） |
 
 - **accent 不随外观提亮**是应用现状（SwiftUI `.tint` 固定）；站点暗色提亮为 `#d08a6e`，未进入应用——如未来对齐须先改本表并同步 `DesignTokens.swift`。
-- 壳层 chrome（侧栏/工具栏材质）在三宿主上跟随系统材质（AppKit sidebar / WinUI / GTK4），表中中性色是原型与语义基准，宿主材质允许差异；阅读器文档三宿主必须逐值一致（`design/reader` 契约）。
+- 壳层 chrome（侧栏/工具栏材质）在三宿主上跟随系统材质（AppKit sidebar / WinUI / GTK4），表中中性色是原型与语义基准，宿主材质允许差异；阅读器文档三宿主必须逐值一致（`docs/reader-design.md` 契约）。
 - **字体**：`system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif`；正文 15px/1.6（阅读器与列表一致），阅读列宽 680px（padding `22px 28px 48px`）；线程头 `.title2` ≈22px/600；次级 13px（callout）；caption 12px；caption2 11px（计数/时间戳，`tabular-nums` 等宽数字）；代码 `ui-monospace` 13px。
 - **圆角**：窗口 12px（原型画布）· 搜索框/编辑器/代码块 8px · 控件与行内元素 6px · 胶囊 99px。**间距节奏**：4/8/12/16/24。**动效**：120ms ease，不过度。
 - **语言**：界面文案英文（跟随现行实现，如 "Search the archive"、"Load more"），契约文档与评审注释中文。
 
 ## 组件词汇（含状态）
 
-`Sidebar`（顶部搜索框 "Search the archive"（有字出 × 清除钮）+ Browse 分区：Notifications（仅登录可见）/ Latest / categories（论坛自有色圆点，顺序 = 论坛位次）+ 主题列表 + 底部账号区）· `TopicListRow`（标题 ≤2 行截断 + `CategoryChip`（论坛色胶囊）+ `CountStrip`（reply/eye/heart，等宽数字）+ `N new` 未读 pill（本地已读追踪，tooltip 说明）+ `RelativeStamp`（"2h/3d"，全时间进 tooltip））· `NotificationListRow`（类型图标 accent 色 + "username · title"，未读加 ● 前缀；点击打开关联主题）· `ThreadReader`（680px 文档：meta 行 avatar+作者+`#N`+相对时间+like；quote/onebox/code/table 契约见 design/reader）· `Morebar`（"Showing X of Y posts · Load more"，批次进行中禁用；空批次移除）· `JumpToBottom`（右下角胶囊浮钮，到底即隐）· `ReplySheet`（Markdown 编辑器 + "Markdown · as \<user\>" + 草稿每键保存，Esc=Cancel ⏎=Reply）· `SignInSheet`（浏览器批准页 + 粘贴码，空码禁用主按钮）· `AIPanel`（Summary/Translation 结果可选中 + 免责行）· `StatusBar`（更新横幅 accent-soft 底 / up-to-date 确认 / 黄三角错误行，均可 Dismiss）· 空态族：`Select a topic`（详情默认占位）· `Nothing here yet`（空分类，指引换分类或搜索）· `Couldn't open this thread`（Retry 原位 / Back to list）· `Empty thread` · `No notifications.`。
+`Sidebar`（顶部搜索框 "Search the archive"（有字出 × 清除钮）+ Browse 分区：Notifications（仅登录可见）/ Latest / categories（论坛自有色圆点，顺序 = 论坛位次）+ 主题列表 + 底部账号区）· `TopicListRow`（标题 ≤2 行截断 + `CategoryChip`（论坛色胶囊）+ `CountStrip`（reply/eye/heart，等宽数字）+ `N new` 未读 pill（本地已读追踪，tooltip 说明）+ `RelativeStamp`（"2h/3d"，全时间进 tooltip））· `NotificationListRow`（类型图标 accent 色 + "username · title"，未读加 ● 前缀；点击打开关联主题）· `ThreadReader`（680px 文档：meta 行 avatar+作者+`#N`+相对时间+like；quote/onebox/code/table 契约见 docs/reader-design.md）· `Morebar`（"Showing X of Y posts · Load more"，批次进行中禁用；空批次移除）· `JumpToBottom`（右下角胶囊浮钮，到底即隐）· `ReplySheet`（Markdown 编辑器 + "Markdown · as \<user\>" + 草稿每键保存，Esc=Cancel ⏎=Reply）· `SignInSheet`（浏览器批准页 + 粘贴码，空码禁用主按钮）· `AIPanel`（Summary/Translation 结果可选中 + 免责行）· `StatusBar`（更新横幅 accent-soft 底 / up-to-date 确认 / 黄三角错误行，均可 Dismiss）· 空态族：`Select a topic`（详情默认占位）· `Nothing here yet`（空分类，指引换分类或搜索）· `Couldn't open this thread`（Retry 原位 / Back to list）· `Empty thread` · `No notifications.`。
 
 ## 不变式
 

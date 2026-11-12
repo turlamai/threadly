@@ -39,7 +39,7 @@ Windows and Linux host parity is queued as issues #17 and #18.
   per round trip and appends them in place, so the scroll position
   survives each batch. The engine's new `topic-posts-page` RPC backs
   this; `topic --all` in the CLI is unchanged.
-- Reader stylesheet follows the design contract in `design/reader/`:
+- Reader stylesheet follows the design contract in `docs/reader-design.md`:
   tables, quote author lines, onebox cards, and disclosure blocks
   render properly, and secondary text uses scheme-adaptive dimming —
   fixed grey text failed dark-mode contrast on grey fills (about 2.5:1;

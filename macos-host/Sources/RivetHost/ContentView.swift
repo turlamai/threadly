@@ -533,7 +533,7 @@ private struct DetailView: View {
                 if store.signedInUser != nil {
                     // The forum has user API keys disabled right now, so
                     // an anonymous Reply button is a dead end: it only
-                    // appears signed in (design/reader DESIGN.md).
+                    // appears signed in (docs/reader-design.md).
                     ToolbarItem(placement: .primaryAction) {
                         Button {
                             store.replySheetTopic = topic
@@ -872,7 +872,7 @@ struct ThreadWebView: NSViewRepresentable {
     /// The forum's cooked HTML is already sanitized server-side; this only
     /// escapes the surrounding metadata and wraps everything in a reader
     /// stylesheet that follows the system appearance (the design contract
-    /// lives in design/reader/DESIGN.md). A 680px column keeps long
+    /// lives in docs/reader-design.md). A 680px column keeps long
     /// paragraphs readable; avatars give each post a face. Signed in,
     /// every post grows a like button wired to the script-message bridge.
     /// When the thread continues past these posts, a bar after the last
