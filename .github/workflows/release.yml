@@ -19,7 +19,7 @@ env:
   # past v0.14.0, the first rivet release containing the branded installer
   # experience this pin was cut for: dmg-background layout, WiX wizard
   # bitmaps, deb desktop refresh.
-  RIVET_PIN: v0.16.0
+  RIVET_PIN: 994047c310c749d3e16d873f33fc073dca0c6521
 
 jobs:
   # Taskly-pattern preflight: prove the signing key matches both embedded
@@ -258,7 +258,7 @@ jobs:
       # GitHub does not allow expressions in `uses:`, so this action pin
       # stays literal — keep it in sync with RIVET_PIN above.
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.16.0
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@994047c310c749d3e16d873f33fc073dca0c6521
       # The source-built minimal runtime ships without the packages that
       # provide `raco make` (compiler-lib) and `raco ctool` (cext-lib),
       # which `raco rivet build` drives; crypto is a rivet/distribution
