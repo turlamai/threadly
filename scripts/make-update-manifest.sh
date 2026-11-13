@@ -31,7 +31,10 @@ DIST="$(cd "$DIST" && pwd)"
 cd "$ROOT"
 
 VERSION="${TAG#v}"
-raco rivet check-release-version "$TAG"
+[[ "$VERSION" == "$(tr -d '[:space:]' < "$ROOT/VERSION")" ]] || {
+  echo "error: tag $TAG does not match VERSION '$(cat "$ROOT/VERSION")'" >&2
+  exit 1
+}
 [[ -f "$KEY" ]] || {
   echo "error: missing signing key $KEY (see scripts/update-keys.sh)" >&2
   exit 1
@@ -86,6 +89,10 @@ fi
 
 # rivet's signer reads DER (OneAsymmetricKey); convert the PEM once here.
 "$OPENSSL_BIN" pkey -in "$KEY" -outform DER -out "$KEY_DER"
+
+# The trust-root guard above must fail before any rivet/raco dependency is
+# required; the offline signing contract test runs without Racket installed.
+raco rivet check-release-version "$TAG"
 
 raco rivet sign-manifest \
   --application-id "$APP_ID" \
