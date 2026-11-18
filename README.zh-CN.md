@@ -1,5 +1,7 @@
 # Threadly
 
+**产品：**[产品主页](https://threadly.jrtx.site/) · **支持：**[问题与反馈](https://github.com/turlamai/threadly/issues) · [当前交付策略](https://github.com/turlamai/turlamai.github.io/blob/master/PORTFOLIO.zh-CN.md)
+
 Racket 社区论坛的原生客户端——不开浏览器标签页就能浏览、阅读、全文搜索
 [racket.discourse.group](https://racket.discourse.group)。Racket 的设计讨论、
 提案与生态动态都发生在这个论坛上,Threadly 给这些长技术帖一套配得上内容
