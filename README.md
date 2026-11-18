@@ -1,5 +1,7 @@
 # Threadly
 
+**Product:** [Website](https://threadly.jrtx.site/) · **Support:** [Issues & feedback](https://github.com/turlamai/threadly/issues) · [Development policy](https://github.com/turlamai/turlamai.github.io/blob/master/PORTFOLIO.md)
+
 A native client for the Racket community forum — browse, read, and
 search [racket.discourse.group](https://racket.discourse.group) without
 opening a browser tab. The forum is where Racket's design decisions,
