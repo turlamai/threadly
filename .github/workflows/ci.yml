@@ -17,7 +17,7 @@ env:
   # every rivet checkout below references this so a bump is one edit.
   # This pin sits past v0.14.0, the first rivet release containing the
   # branded installer experience this pin was cut for.
-  RIVET_PIN: 179319936c6a22b2fa676c0fd557bcdb05ee5205
+  RIVET_PIN: c1f0d921e2136c0cfb2c1c1f6d273f2b26222a19
 
 jobs:
   backend:
