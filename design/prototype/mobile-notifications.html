@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark"><title>Threadly — Mobile notifications</title><link rel="stylesheet" href="shared.css"></head>
+<body class="mobile" data-screen="notifications">
+<div class="m-shell" id="app">
+<header class="m-header" id="head"></header>
+<main class="m-scroll" id="content" aria-label="notifications content"></main>
+<footer class="m-bottom" id="bottom"></footer>
+<p class="m-status" id="status" role="status" aria-live="polite">Local prototype · sample content</p>
+</div>
+<button type="button" class="m-jump" id="jump" aria-label="Jump to bottom of discussion" hidden><svg class="m-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8m-3-3 3 3 3-3"/></svg><span>Bottom</span></button>
+<dialog id="drawer" aria-labelledby="drawerTitle"><div class="m-dialog-body"><header class="m-dialog-head"><h2 id="drawerTitle">Browse</h2><button type="button" data-action="close-drawer">Done</button></header><div id="drawerContent"></div></div></dialog>
+<dialog class="m-ai-sheet" id="aiDialog" aria-labelledby="aiTitle"><div class="m-dialog-body"><header class="m-dialog-head"><h2 id="aiTitle">Reading assistant</h2><button type="button" data-action="close-ai">Done</button></header><div class="m-segments" aria-label="Result type"><button type="button" id="summaryMode" data-action="summary" aria-pressed="true">Summary</button><button type="button" id="translationMode" data-action="translation" aria-pressed="false">Translation</button></div><div class="m-ai-result" id="aiResult" aria-live="polite"></div><p class="m-caption">AI output can be wrong — check the thread.<br>Sample result · no model connected.</p></div></dialog>
+<noscript><p>Enable JavaScript to use this local prototype.</p></noscript>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+const escape=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const paths={"i-search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m21 21-4.3-4.3\"/>", "i-tray": "<path d=\"M3 13h5l2 3h4l2-3h5\"/><path d=\"M5 5h14l2 8v6H3v-6z\"/>", "i-reply": "<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/>", "i-eye": "<path d=\"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "i-heart": "<path d=\"M19 14c1.5-1.5 2-3.2 2-4.5A4.5 4.5 0 0 0 12 6a4.5 4.5 0 0 0-9 3.5c0 1.3.5 3 2 4.5l7 7z\"/>", "i-side": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M9 4v16\"/>", "i-down": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8v8m-3-3 3 3 3-3\"/>", "i-person": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4 3.6-6 8-6s8 2 8 6\"/>", "i-bell": "<path d=\"M12 3a6 6 0 0 0-6 6v3l-2 4h16l-2-4V9a6 6 0 0 0-6-6zm-2 15a2 2 0 0 0 4 0z\"/>", "i-refresh": "<path d=\"M21 12a9 9 0 1 1-2.6-6.4\"/><path d=\"M21 3v6h-6\"/>", "i-star": "<path d=\"M12 3l2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4z\"/>", "i-translate": "<path d=\"M4 5h8M8 3v2c0 4-2 7-5 8\"/><path d=\"M6 9c1.5 3 4 5.5 7 6.5\"/><path d=\"m13 21 4.5-10L22 21m-7.5-3h6\"/>", "i-bubble": "<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/>", "i-globe": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9z\"/>", "i-at": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1\"/>", "i-quote": "<path d=\"M10 7H6a3 3 0 0 0-3 3v4a3 3 0 0 0 3 3h2v-4H5v-3a1 1 0 0 1 1-1h4zm11 0h-4a3 3 0 0 0-3 3v4a3 3 0 0 0 3 3h2v-4h-3v-3a1 1 0 0 1 1-1h4z\"/>", "i-pencil": "<path d=\"m16.5 3.5 4 4L8 20l-5 1 1-5zM14 6l4 4\"/>", "i-back": "<g transform=\"rotate(90 12 12)\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8v8m-3-3 3 3 3-3\"/></g>"};
+function icon(name){return `<svg class="m-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">${paths['i-'+name]||paths['i-reply']}</svg>`;}
+const topics=[{"id": "release", "title": "Racket v8.16 released", "category": "Announcements", "replies": 42, "views": "1.2k", "likes": 56, "new": 12, "time": "2h", "date": "November 22, 2026 at 10:00"}, {"id": "typed", "title": "Typed Racket: why won't this refine on a hash of lists?", "category": "Racket", "replies": 9, "views": "310", "likes": 8, "new": 0, "time": "4h", "date": "November 22, 2026 at 10:00"}, {"id": "proxy", "title": "raco pkg install hangs behind a corporate proxy", "category": "General", "replies": 14, "views": "520", "likes": 12, "new": 0, "time": "6h", "date": "November 22, 2026 at 10:00"}, {"id": "perf", "title": "Performance of for/fold vs named let over large hashes", "category": "Racket", "replies": 47, "views": "1.3k", "likes": 31, "new": 0, "time": "9h", "date": "November 22, 2026 at 10:00"}, {"id": "contracts", "title": "Proposal: first-class contracts for rackunit checks", "category": "Internals", "replies": 33, "views": "890", "likes": 27, "new": 3, "time": "1d", "date": "November 22, 2026 at 10:00"}, {"id": "frame", "title": "ANN: data-frame 0.3 \u2014 group-by and pivot", "category": "Announcements", "replies": 6, "views": "210", "likes": 14, "new": 0, "time": "1d", "date": "November 22, 2026 at 10:00"}, {"id": "memory", "title": "How do you profile memory growth in long-running web servers?", "category": "General", "replies": 11, "views": "380", "likes": 5, "new": 0, "time": "2d", "date": "November 22, 2026 at 10:00"}, {"id": "survey", "title": "Community survey 2026 results", "category": "Meta", "replies": 18, "views": "760", "likes": 40, "new": 0, "time": "3d", "date": "November 22, 2026 at 10:00"}];
+const samplePosts=[{"id": "p1", "author": "bogdan", "time": "Nov 9", "date": "November 9, 2026 at 10:00", "likes": 0, "html": "<p>Nobody's wrong here \u2014 the difference only shows once the accumulator is boxed. A named let over <code>hash-ref</code>/<code>hash-set!</code> pays a re-hash on every step, while <code>for/fold</code> keeps the accumulator in a register until the loop body forces it out.</p>\n            <pre><code>(for/fold ([acc 0])\n          ([k (in-hash-keys h)])\n  (+ acc (hash-ref h k)))</code></pre>"}, {"id": "p2", "author": "samr", "time": "Nov 9", "date": "November 9, 2026 at 10:00", "likes": 3, "html": "<aside class=\"quote\"><div class=\"title\">bogdan wrote:</div>\n              <p>A named let over <code>hash-ref</code>/<code>hash-set!</code> pays a re-hash on every step\u2026</p></aside>\n            <p>Is that true even when the fold result is a list you cons onto? I benchmarked both on a 2M-key hash and got within noise of each other.</p>"}, {"id": "p3", "author": "lexi", "time": "Nov 9", "date": "November 9, 2026 at 10:00", "likes": 0, "html": "<p>Within noise on cons, yes \u2014 but try accumulating into a mutable <code>box</code> and the gap opens up. See also the <a href=\"#reader-notes\">garbage-collector section</a> of the performance guide.</p>"}, {"id": "p4", "author": "bogdan", "time": "Nov 9", "date": "November 9, 2026 at 10:00", "likes": 0, "html": "<p>Right. The boxed case is exactly where <code>for/fold</code>'s named-update clauses earn their keep.</p>"}, {"id": "format", "author": "Threadly", "time": "Nov 22", "date": "November 22, 2026 at 10:00", "likes": 0, "html": "<p>Reader formatting sample. The elements below illustrate the existing cooked-HTML contract; they are not an additional forum reply.</p><aside class=\"onebox\"><div class=\"source\">Local reader reference</div><h4><a href=\"#reader-notes\">Reading continuity and formatting</a></h4><p>Code stays unbroken, quotes retain attribution, and wide tables scroll within the reading column.</p></aside><div class=\"table-scroll\" role=\"region\" aria-label=\"Formatting reference table, scroll horizontally\" tabindex=\"0\"><table><thead><tr><th>Element</th><th>Reading behavior</th><th>Reference</th></tr></thead><tbody><tr><td>Code block</td><td>Unbroken lines, horizontal scrolling</td><td>13px platform mono</td></tr><tr><td>Table</td><td>Contained horizontal overflow</td><td>Hairline row rules</td></tr><tr><td>Quote</td><td>Author and original text retained</td><td>Terracotta rail</td></tr></tbody></table></div><details id=\"reader-notes\"><summary>Reader formatting notes</summary><div class=\"contents\"><p>These elements follow the local reader design contract. The mobile column adapts to the available width while preserving the reading rhythm.</p></div></details><hr>"}];
+const categories={Announcements:'#d98e2b',General:'#2596be',Racket:'#9d00ff',Internals:'#3f9e5f',Meta:'#8e8e8e'};
+const initial=document.body.dataset.screen;
+const scenario=new URLSearchParams(location.search).get('state')||'';
+let saved={},persistent=true;
+try{saved=JSON.parse(localStorage.getItem('threadly-mobile-v1')||'{}')||{};localStorage.setItem('threadly-mobile-probe','1');localStorage.removeItem('threadly-mobile-probe');}catch{persistent=false;}
+const state={
+ view:initial==='ai'?'thread':initial,topic:'perf',category:saved.category||'Latest',query:saved.query||'',
+ auth:typeof saved.auth==='boolean'?saved.auth:['reply','notifications'].includes(initial),
+ dark:typeof saved.dark==='boolean'?saved.dark:matchMedia('(prefers-color-scheme: dark)').matches,
+ drafts:saved.drafts||{},extra:Array.isArray(saved.extra)?saved.extra:[],likes:saved.likes||{},
+ positions:saved.positions||{},read:saved.read||{},loaded:saved.loaded||{},notificationRead:saved.notificationRead||[],
+ batch:0,aiRequest:0,sendRequest:0,busy:false,history:[],pending:null,
+ failLoad:scenario==='load-error',failMore:scenario==='more-error',failReply:scenario==='reply-error',failAI:scenario==='ai-error',expired:scenario==='session-expired',forceEmpty:scenario==='empty',authGeneration:0
+};
+let dialogTrigger=null,aiMode='summary';
+const topic=()=>topics.find(t=>t.id===state.topic)||topics[3];
+function allPosts(){return [...(state.topic==='perf'?samplePosts:[]),...state.extra.filter(p=>p.topic===state.topic).map(p=>({...p,html:`<p>${escape(p.text).replace(/\n/g,'<br>')}</p>`}))];}
+function persist(){if(!persistent)return;try{localStorage.setItem('threadly-mobile-v1',JSON.stringify({auth:state.auth,dark:state.dark,drafts:state.drafts,extra:state.extra,likes:state.likes,positions:state.positions,read:state.read,loaded:state.loaded,notificationRead:state.notificationRead,category:state.category,query:state.query}));}catch{persistent=false;}}
+function notice(text){$('status').textContent=text;}
+function viewKey(){return state.view==='thread'?'thread:'+state.topic:state.view;}
+function savePlace(){state.positions[viewKey()]=$('content').scrollTop;persist();}
+function action(name,label,extra='',className=''){return `<button type="button" class="${className}" data-action="${name}" ${extra}>${label}</button>`;}
+function header(title,subtitle=''){
+ const back=state.view==='browse'?'<a class="m-button" href="../index.html" aria-label="Back to prototype navigation">'+icon('back')+'</a>':action('back',state.view==='reply'?'Cancel':icon('back'),`aria-label="${state.view==='reply'?'Cancel and keep draft':'Back'}"`,'m-icon-button');
+ $('head').innerHTML=`<div class="m-nav">${back}<span class="m-brand m-grow">Threadly</span>${action('theme',state.dark?'Light':'Dark','aria-label="Switch to '+(state.dark?'light':'dark')+' theme"')}${state.view==='browse'?action('account',icon('person'),`aria-label="${state.auth?'Account and sign out':'Sign in'}"`,'m-icon-button'):''}</div><h1 id="screenTitle" tabindex="-1">${title}</h1>${subtitle?`<p class="m-subtitle">${subtitle}</p>`:''}`;
+}
+function go(view,options={}){
+ savePlace();state.batch++;state.aiRequest++;state.sendRequest++;state.busy=false;
+ if(!options.replace)state.history.push({view:state.view,topic:state.topic});
+ if(options.topic)state.topic=options.topic;
+ state.view=view;render();
+ if(options.focus!==false)$('screenTitle').focus({preventScroll:true});
+}
+function back(){
+ if(state.view==='reply')saveDraft();
+ const prev=state.history.pop()||{view:state.view==='browse'?'browse':state.view==='reply'?'thread':'browse',topic:state.topic};
+ savePlace();state.batch++;state.sendRequest++;state.busy=false;state.topic=prev.topic;state.view=prev.view;render();
+ const target=state.view==='browse'?$('content').querySelector(`[data-topic="${state.topic}"]`):$('screenTitle');
+ (target||$('screenTitle')).focus({preventScroll:true});
+}
+function render(){
+ document.body.classList.toggle('dark',state.dark);
+ $('jump').hidden=true;$('bottom').hidden=false;$('bottom').innerHTML='';
+ if(state.view==='browse')renderBrowse();
+ else if(state.view==='thread')renderThread();
+ else if(state.view==='reply')renderReply();
+ else if(state.view==='notifications')renderNotifications();
+ else renderSignin();
+ $('content').scrollTop=Number(state.positions[viewKey()])||0;
+ persist();
+ requestAnimationFrame(updateJump);
+}
+function renderBrowse(){
+ header('Browse','Racket community');
+ $('head').insertAdjacentHTML('beforeend',`<div class="m-search"><label for="search" aria-label="Search the archive">${icon('search')}</label><input id="search" type="search" placeholder="Search the archive" value="${escape(state.query)}" autocomplete="off">${action('clear-search','Clear','id="clearSearch"'+(!state.query?' hidden':''))}</div><div class="m-filter">${action('categories',icon('tray')+`<span>${escape(state.category)}</span>`,'aria-haspopup="dialog"')}<span id="topicCount" class="m-caption m-tabular"></span></div>`);
+ $('content').innerHTML='<div id="topicRows"></div>';
+ $('bottom').innerHTML=`<span class="m-caption">${state.auth?'Signed in as samr':'Read without an account'}</span>${state.auth?action('notifications',icon('reply')+'Notifications'):action('signin','Sign in')}`;
+ renderTopicRows();
+ $('search').addEventListener('input',event=>{state.query=event.target.value;state.forceEmpty=false;renderTopicRows();persist();});
+}
+function renderTopicRows(){
+ const rows=topics.filter(t=>(state.category==='Latest'||t.category===state.category)&&(t.title+' '+t.category).toLowerCase().includes(state.query.toLowerCase().trim()));
+ const visible=state.forceEmpty?[]:rows;
+ $('topicCount').textContent=visible.length+' topics';$('clearSearch').hidden=!state.query;
+ $('topicRows').innerHTML=visible.length?visible.map(t=>`<button type="button" class="m-topic" data-topic="${t.id}"><span class="m-topic-top"><span class="m-chip"><span class="m-dot" style="--category:${categories[t.category]}"></span>${t.category}</span><time class="m-caption m-tabular" title="${t.date}">${t.time}</time></span><span class="m-topic-title">${escape(t.title)}</span><span class="m-counts"><span aria-label="${t.replies} replies">${icon('reply')}${t.replies+state.extra.filter(p=>p.topic===t.id).length}</span><span aria-label="${t.views} views">${icon('eye')}${t.views}</span><span aria-label="${t.likes} likes">${icon('heart')}${t.likes}</span>${t.new&&!(state.read[t.id]>0)?`<span class="m-pill">${t.new} new</span>`:''}</span></button>`).join(''):`<div class="m-empty"><h2>Nothing here yet</h2><p>Try a different category or search the archive.</p>${action('reset','Show latest topics','','m-secondary')}</div>`;
+}
+function showCategories(trigger){
+ dialogTrigger=trigger;
+ $('drawerTitle').textContent='Browse';
+ $('drawerContent').innerHTML=`<nav class="m-choices" aria-label="Browse sections">${state.auth?action('open-notifications',icon('reply')+'Notifications'):''}${['Latest',...Object.keys(categories)].map(name=>action('category',`${categories[name]?`<span class="m-dot" style="--category:${categories[name]}"></span>`:icon('tray')}<span>${name}</span>`,`data-category="${name}" aria-current="${name===state.category}"`)).join('')}</nav>`;
+ $('drawer').showModal();
+}
+function closeDrawer(){ $('drawer').close();if(dialogTrigger?.isConnected)dialogTrigger.focus({preventScroll:true}); }
+function threadHeader(){header('Discussion',topic().category);}
+function renderThread(){
+ threadHeader();
+ if(state.failLoad){$('content').innerHTML=`<div class="m-empty"><h2>Couldn't open this thread</h2><p>Your place is saved. Retry here or return to the list.</p>${action('retry-thread','Retry','','m-primary')}${action('list','Back to list')}</div>`;$('bottom').innerHTML='<span class="m-caption">Loading failed · selection preserved</span>';return;}
+ const posts=allPosts(),total=posts.length;
+ const loaded=Math.min(total,Math.max(state.loaded[state.topic]||2,2));state.loaded[state.topic]=loaded;
+ $('content').innerHTML=`<article class="m-reader"><h2 class="m-thread-title">${escape(topic().title)}</h2><p class="m-muted">${total?total+' sample posts':'Topic preview'} · ${topic().category}</p><div id="posts">${posts.slice(0,loaded).map(postMarkup).join('')}</div><div id="moreSlot"></div>${!total?`<div class="m-empty"><h2>Empty thread</h2><p>This local preview contains the topic title only. Return to Latest and open the performance discussion for the full reading sample.</p>${action('list','Back to list','','m-secondary')}</div>`:''}<div id="threadEnd" class="m-caption" tabindex="-1">${loaded===total&&total?'End of sample discussion':''}</div></article>`;
+ renderMore();
+ $('bottom').innerHTML=`<span class="m-caption m-tabular">${loaded} of ${total} posts</span>${action('ai',icon('star')+'AI','aria-haspopup="dialog"')}${state.auth?action('reply',icon('bubble')+'Reply','','m-primary'):action('signin','Sign in')}`;
+}
+function postMarkup(p,index){
+ const key=state.topic+':'+p.id,liked=!!state.likes[key],n=(p.likes||0)+(liked?1:0);
+ return `<section class="post" id="post-${escape(p.id)}" data-post-index="${index+1}"><div class="meta"><span class="avatar" aria-hidden="true">${escape(p.author.charAt(0))}</span><span class="author">${escape(p.author)}</span><span>#${index+1}</span><time title="${escape(p.date||'November 22, 2026 at 10:00')}">${escape(p.time||'Just now')}</time>${state.auth?action('like',icon('heart')+`<span>${n}</span>`,`data-post="${p.id}" aria-label="${liked?'Unlike':'Like'} post ${index+1}" aria-pressed="${liked}"`,'m-like'):`<span class="m-caption" style="margin-left:auto">${n} likes</span>`}</div><div class="cooked">${p.html}</div>${p.local?'<p class="m-caption">Local reply · not sent to the forum</p>':''}</section>`;
+}
+function renderMore(){
+ const total=allPosts().length,loaded=state.loaded[state.topic]||0;
+ $('moreSlot').innerHTML=loaded<total?`<div class="morebar"><span>Showing ${loaded} of ${total} posts</span>${action('more','Load more')}</div><p class="m-live" id="batchStatus" role="status"></p>`:'';
+}
+async function loadMore(button){
+ if(state.busy)return;
+ const token=++state.batch,id=state.topic;state.busy=true;button.disabled=true;button.textContent='Loading more…';$('batchStatus').textContent='Loading the next posts…';
+ await new Promise(resolve=>setTimeout(resolve,480));
+ if(token!==state.batch||state.view!=='thread'||id!==state.topic)return;
+ state.busy=false;
+ if(state.failMore){state.failMore=false;button.disabled=false;button.textContent='Retry';$('batchStatus').textContent='Couldn’t load more posts. Your place is safe. Retry this batch.';return;}
+ const posts=allPosts(),before=state.loaded[id],after=Math.min(before+2,posts.length);
+ $('posts').insertAdjacentHTML('beforeend',posts.slice(before,after).map((p,i)=>postMarkup(p,before+i)).join(''));
+ state.loaded[id]=after;persist();renderMore();
+ $('bottom').querySelector('.m-caption').textContent=`${after} of ${posts.length} posts`;
+ $('threadEnd').textContent=after===posts.length?'End of sample discussion':'';
+ notice('More posts loaded');
+ // Keep focus at the appended batch when the original load control is removed.
+ const focus=$('moreSlot').querySelector('button')||$('threadEnd');focus.focus({preventScroll:true});updateJump();
+}
+function updateJump(){
+ if(state.view!=='thread'||state.failLoad){$('jump').hidden=true;return;}
+ const el=$('content');$('jump').hidden=el.scrollHeight-el.clientHeight-el.scrollTop<24;
+ const posts=Array.from(el.querySelectorAll('[data-post-index]'));
+ const edge=el.getBoundingClientRect().bottom;
+ let deepest=state.read[state.topic]||0;
+ posts.forEach(post=>{if(post.getBoundingClientRect().bottom<=edge+8)deepest=Math.max(deepest,Number(post.dataset.postIndex));});
+ state.read[state.topic]=deepest;
+}
+function requestReply(){if(!state.auth){state.pending='reply';go('signin');}else go('reply');}
+function renderReply(){
+ header('Reply',topic().category);
+ if(!state.auth){$('content').innerHTML=`<div class="m-empty"><h2>Sign in to reply</h2><p>Your draft stays here while you sign in.</p>${action('signin-reply','Sign in','','m-primary')}</div>`;$('bottom').innerHTML='<span class="m-caption">Anonymous reading stays available</span>';return;}
+ $('content').innerHTML=`<div class="m-reply-editor"><div class="m-reply-topic">${escape(topic().title)}</div><p>Markdown · as samr</p><label for="replyText">Your reply</label><textarea id="replyText" placeholder="Add to the conversation…">${escape(state.drafts[state.topic]||'')}</textarea><p id="draftStatus" role="status">${state.drafts[state.topic]?'Saved draft restored':'Your draft is kept if you cancel.'}</p><div class="m-error" id="replyError" role="alert" hidden></div></div>`;
+ $('bottom').innerHTML=`<span class="m-caption">Local preview · not sent to forum</span>${action('send','Send reply','id="sendReply"'+(!(state.drafts[state.topic]||'').trim()?' disabled':''),'m-primary')}`;
+ $('replyText').addEventListener('input',()=>{saveDraft();$('sendReply').disabled=!$('replyText').value.trim();});
+}
+function saveDraft(){if(!$('replyText'))return;state.drafts[state.topic]=$('replyText').value;persist();$('draftStatus').textContent=persistent?'Draft saved on this device':'Draft kept in this session only';}
+async function sendReply(button){
+ if(state.busy)return;
+ const text=$('replyText').value.trim();if(!text)return;
+ saveDraft();
+ if(state.expired){state.expired=false;state.auth=false;state.authGeneration++;persist();renderReply();notice('Sample session expired · draft preserved');return;}
+ const token=++state.sendRequest,id=state.topic,auth=state.authGeneration;state.busy=true;button.disabled=true;button.textContent='Sending…';$('replyText').disabled=true;$('replyError').hidden=true;
+ await new Promise(resolve=>setTimeout(resolve,480));
+ if(token!==state.sendRequest||state.view!=='reply'||id!==state.topic)return;
+ state.busy=false;button.disabled=false;button.textContent='Send reply';$('replyText').disabled=false;
+ if(state.failReply||!state.auth||auth!==state.authGeneration){state.failReply=false;$('replyError').hidden=false;$('replyError').textContent='Your reply wasn’t sent. Your draft is safe. Select Send reply to retry.';return;}
+ state.extra.push({id:'local-'+Date.now(),topic:id,author:'samr',time:'Just now',likes:0,text,local:true});delete state.drafts[id];state.loaded[id]=allPosts().length;persist();
+ state.view='thread';state.history=state.history.filter(item=>item.view!=='signin'&&item.view!=='reply');render();$('content').scrollTop=$('content').scrollHeight;notice('Reply added locally · no forum request made');
+}
+const notes=[{id:'n1',topic:'perf',who:'bogdan',type:'bubble',text:'replied to',time:'2h',unread:true},{id:'n2',topic:'typed',who:'lexi',type:'heart',text:'liked a post in',time:'5h',unread:true},{id:'n3',topic:'contracts',who:'samr',type:'at',text:'mentioned you in',time:'Nov 21',unread:false},{id:'n4',topic:'proxy',who:'bogdan',type:'reply',text:'quoted you in',time:'Nov 20',unread:false}];
+function renderNotifications(){
+ header('Notifications','Replies, mentions and activity');
+ if(!state.auth){$('content').innerHTML=`<div class="m-empty"><h2>Sign in to see notifications</h2><p>Continue browsing without an account, or sign in to see your activity.</p>${action('signin-notes','Sign in','','m-primary')}</div>`;}
+ else $('content').innerHTML=state.forceEmpty?'<div class="m-empty"><h2>No notifications.</h2><p>New replies and mentions will appear here.</p></div>':notes.map(n=>{const t=topics.find(t=>t.id===n.topic),unread=n.unread&&!state.notificationRead.includes(n.id);return `<button type="button" class="m-notification" data-note="${n.id}">${icon(n.type)}<span class="m-copy"><span class="m-caption">${unread?'<span class="m-unread" aria-label="Unread">● </span>':''}${n.who} ${n.text}</span><strong>${escape(t.title)}</strong><time class="m-caption m-tabular" title="November 22, 2026">${n.time}</time></span></button>`;}).join('');
+ $('bottom').innerHTML=`<span class="m-caption">${state.auth?'Signed in as samr':'Anonymous'}</span>${action('list','Latest topics')}`;
+}
+function renderSignin(){
+ header('Sign in','Connect your forum account');
+ $('content').innerHTML=`<div class="m-form"><div class="m-stack"><h2>Approve in your browser</h2><p>Open the forum approval page, approve Threadly, then copy the code it shows.</p>${action('approval',icon('globe')+'Open approval page','','m-secondary')}</div><div><label class="m-label" for="approvalCode">Approval code</label><input class="m-input" id="approvalCode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste the code"><p class="m-caption" style="margin-top:8px">A code is required to complete sign-in.</p></div><div class="m-error" id="signinError" role="alert" hidden></div><p class="m-caption">This is a local approval preview. No credentials are sent to the forum. You can browse and read without signing in.</p></div>`;
+ $('bottom').innerHTML=action('complete-signin','Complete sign-in','id="completeSignin" disabled','m-primary');
+ $('approvalCode').addEventListener('input',event=>{$('completeSignin').disabled=!event.target.value.trim();$('signinError').hidden=true;});
+ $('approvalCode').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing&&!$('completeSignin').disabled){event.preventDefault();completeSignin();}});
+}
+function showApproval(trigger){
+ dialogTrigger=trigger;$('drawerTitle').textContent='Browser approval';
+ $('drawerContent').innerHTML=`<div class="m-stack"><p>Approval preview · no real forum connection</p><p class="m-muted">Approve the sample account samr to try replies and notifications.</p>${action('approve','Approve sample access','','m-primary')}</div>`;$('drawer').showModal();
+}
+function completeSignin(){
+ if($('approvalCode').value.trim()!=='THREADLY-DEMO'){$('signinError').hidden=false;$('signinError').textContent='This preview accepts the sample code only. Open the approval page to get it.';return;}
+ state.auth=true;state.authGeneration++;persist();const next=state.pending||'browse';state.pending=null;state.history=state.history.filter(item=>item.view!=='signin'&&item.view!=='reply');go(next,{replace:true});notice('Sample account connected · local preview only');
+}
+function showAI(trigger){
+ dialogTrigger=trigger||$('bottom').querySelector('[data-action="ai"]');aiMode='summary';$('aiDialog').showModal();loadAI();
+}
+async function loadAI(){
+ const token=++state.aiRequest,id=state.topic;
+ $('summaryMode').setAttribute('aria-pressed',String(aiMode==='summary'));$('translationMode').setAttribute('aria-pressed',String(aiMode==='translation'));
+ $('aiResult').innerHTML='<p role="status">Preparing sample result…</p>';
+ await new Promise(resolve=>setTimeout(resolve,420));
+ if(token!==state.aiRequest||id!==state.topic||!$('aiDialog').open)return;
+ if(state.failAI){state.failAI=false;$('aiResult').innerHTML=`<div class="m-stack"><p>Couldn’t prepare this result. Your thread stays open.</p>${action('retry-ai','Retry','','m-secondary')}</div>`;return;}
+ if(state.topic!=='perf'){$('aiResult').textContent='No sample result is included for this topic. The performance discussion contains a reading-assistant example.';return;}
+ $('aiResult').innerHTML=aiMode==='summary'?'<p>The thread compares named let and <code>for/fold</code> over large hashes.</p><ul><li>Participants discuss list accumulation versus a boxed accumulator.</li><li>Several replies compare benchmark observations.</li><li>Check the original discussion before relying on its claims.</li></ul>':'<p>Translation example · English</p><p>This thread discusses how named let and for/fold behave when processing large hashes. Participants distinguish list accumulators from boxed values and compare benchmark results.</p><p>This local example is not a live model translation.</p>';
+}
+function closeAI(){state.aiRequest++;$('aiDialog').close();if(dialogTrigger?.isConnected)dialogTrigger.focus({preventScroll:true});}
+$('app').addEventListener('click',event=>{
+ const row=event.target.closest('[data-topic]');if(row){go('thread',{topic:row.dataset.topic});return;}
+ const note=event.target.closest('[data-note]');if(note){const n=notes.find(n=>n.id===note.dataset.note);if(!state.notificationRead.includes(n.id))state.notificationRead.push(n.id);go('thread',{topic:n.topic});return;}
+ dispatch(event);
+});
+$('drawer').addEventListener('click',dispatch);$('aiDialog').addEventListener('click',dispatch);
+function dispatch(event){
+ const button=event.target.closest('[data-action]');if(!button||button.disabled)return;
+ const act=button.dataset.action;
+ if(act==='theme'){savePlace();state.dark=!state.dark;persist();document.body.classList.toggle('dark',state.dark);const b=$('head').querySelector('[data-action="theme"]');b.textContent=state.dark?'Light':'Dark';b.setAttribute('aria-label','Switch to '+(state.dark?'light':'dark')+' theme');}
+ else if(act==='back')back();
+ else if(act==='list')go('browse');
+ else if(act==='categories')showCategories(button);
+ else if(act==='close-drawer')closeDrawer();
+ else if(act==='category'){closeDrawer();state.category=button.dataset.category;state.forceEmpty=false;renderBrowse();persist();$('head').querySelector('[data-action="categories"]').focus();}
+ else if(act==='reset'){state.category='Latest';state.query='';state.forceEmpty=false;renderBrowse();persist();$('search').focus();}
+ else if(act==='clear-search'){state.query='';$('search').value='';renderTopicRows();persist();$('search').focus();}
+ else if(act==='signin'){go('signin');}
+ else if(act==='signin-reply'){state.pending='reply';go('signin');}
+ else if(act==='signin-notes'){state.pending='notifications';go('signin');}
+ else if(act==='notifications'||act==='open-notifications'){if($('drawer').open)closeDrawer();go('notifications');}
+ else if(act==='account'){if(state.auth){state.auth=false;state.authGeneration++;persist();render();notice('Signed out · drafts kept');}else go('signin');}
+ else if(act==='reply')requestReply();
+ else if(act==='send')sendReply(button);
+ else if(act==='more')loadMore(button);
+ else if(act==='retry-thread'){
+  state.failLoad=false;const token=++state.batch;$('content').innerHTML='<div class="m-loading" role="status"><span class="m-bar"></span><span class="m-bar"></span><span class="m-bar"></span><p class="m-caption">Loading discussion…</p></div>';
+  setTimeout(()=>{if(token===state.batch&&state.view==='thread'){renderThread();$('screenTitle').focus({preventScroll:true});updateJump();}},420);
+ }
+ else if(act==='like'){
+  if(!state.auth)return;
+  const key=state.topic+':'+button.dataset.post;state.likes[key]=!state.likes[key];persist();const p=allPosts().find(p=>p.id===button.dataset.post);button.setAttribute('aria-pressed',String(state.likes[key]));button.setAttribute('aria-label',(state.likes[key]?'Unlike':'Like')+' post');button.innerHTML=icon('heart')+'<span>'+((p.likes||0)+(state.likes[key]?1:0))+'</span>';
+ }
+ else if(act==='ai')showAI(button);
+ else if(act==='close-ai')closeAI();
+ else if(act==='summary'||act==='translation'){aiMode=act;loadAI();}
+ else if(act==='retry-ai')loadAI();
+ else if(act==='approval')showApproval(button);
+ else if(act==='approve'){$('drawerContent').innerHTML=`<div class="m-stack"><p class="m-muted">Sample access approved. Return to Threadly with this code.</p><p class="m-tabular">THREADLY-DEMO</p>${action('insert-code','Use sample code','','m-primary')}</div>`;}
+ else if(act==='insert-code'){closeDrawer();$('approvalCode').value='THREADLY-DEMO';$('completeSignin').disabled=false;$('approvalCode').focus();}
+ else if(act==='complete-signin')completeSignin();
+}
+$('content').addEventListener('scroll',()=>{updateJump();state.positions[viewKey()]=$('content').scrollTop;},{passive:true});
+$('jump').addEventListener('click',()=>{$('content').scrollTo({top:$('content').scrollHeight,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});});
+$('drawer').addEventListener('cancel',()=>{setTimeout(()=>{if(dialogTrigger?.isConnected)dialogTrigger.focus({preventScroll:true});},0);});
+$('aiDialog').addEventListener('cancel',event=>{event.preventDefault();closeAI();});
+$('content').addEventListener('click',event=>{
+ const link=event.target.closest('a[href^="#"]');if(!link)return;
+ event.preventDefault();const id=link.getAttribute('href').slice(1);
+ if(id==='reader-notes'){state.loaded[state.topic]=allPosts().length;const pos=$('content').scrollTop;renderThread();$('content').scrollTop=pos;const target=$('reader-notes');if(target){target.open=true;target.scrollIntoView({block:'center'});target.querySelector('summary').focus({preventScroll:true});}}
+});
+window.addEventListener('pagehide',()=>{saveDraft();savePlace();state.batch++;state.aiRequest++;state.sendRequest++;});
+render();
+if(initial==='ai')showAI();
+if(scenario==='loading'){state.failLoad=false;const token=++state.batch;$('content').innerHTML='<div class="m-loading" role="status"><span class="m-bar"></span><span class="m-bar"></span><span class="m-bar"></span><p class="m-caption">Loading…</p></div>';setTimeout(()=>{if(token===state.batch)render();},800);}
+})();
+</script>
+</body></html>

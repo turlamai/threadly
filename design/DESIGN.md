@@ -9,7 +9,8 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 - **目标**：维护模式，不从零重设计。把既有 UI 的 HIG 标准显式化并钉死：让「论坛长帖阅读」这个主角在界面上站出来（chrome 是被移除的东西）；三宿主共享同一份语义契约（同语义，不等像素，沿用 AGENTS.md「交互契约与验证状态」）。
 - **原型范围**（6 屏 × 亮/暗）：① Browse 线程列表（英雄屏）② Thread 帖子详情阅读器 ③ Reply 回复撰写器 ④ Sign in 登录/账号态 ⑤ Notifications 通知 ⑥ AI 结果面板（BYOK 现状）。
 - **Exit 条件**：6 屏关键状态齐（空态/加载态/错误态均有实现出处，见组件词汇状态表）+ 交互逻辑与既有实现一致（加载身份绑定、草稿保留、Retry 原位）+ HIG 清单全过 + 用户评审通过。
-- **不在范围**：任何新功能——列表键盘导航（j/k）、富文本撰写器、应用内 BYOK 设置表单、移动端形态；`racket/backend.rkt` RVT1 面与路由契约变更；新配色体系；商业化/定价 UI。
+- **不在范围**：任何新功能——列表键盘导航（j/k）、富文本撰写器、应用内 BYOK 设置表单；`racket/backend.rkt` RVT1 面与路由契约变更；新配色体系；商业化/定价 UI。
+- **范围修订（owner 2026-11-22）**：原“不在范围：移动端形态”本轮解禁，新增六个 iPhone 移动阅读/回复原型；不扩展真实后端或论坛认证能力。
 
 ## 设计原则（HIG 内核 · Threadly 特有）
 
@@ -63,3 +64,62 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 
 差异声明纪律：宿主特例必须先写进本节才能实现；未声明的宿主差异按违约处理
 （案例：taskly 漂移台账 D8）。
+
+
+## 移动端阅读与回复契约（owner 2026-11-22）
+
+### 定线与依据
+
+桌面 = rivet（三宿主已落地）；移动端 = 移动阅读/回复契约（原生 Swift，等 rivet 移动宿主定型；owner 2026-11-22 要求原型含移动端视图）。本节只定义原型与交互，不宣称已完成 Swift 实现。
+
+阅读器 cooked-HTML 元素级契约以 `docs/reader-design.md` 为准，`reader/index.html` 为排版样例。三宿主逐值一致的原则延伸至移动端：列宽自适应、核心排版保持；下列 owner 指定的触控、最小字号和可读性适配具名记录，不回写或改动正式阅读器契约。
+
+本轮遵循家族设计规范 `2026-11-20-minimal-family` 的适用项；现有六个桌面屏保留。本地 OpenDesign 项目不是 git 工作区，源 SHA、commit/push 与原生宿主验收不在本次原型交付中冒充完成。
+
+### 文件与视觉映射
+
+- 六个独立入口：`prototype/mobile-browse.html`、`mobile-thread.html`、`mobile-reply.html`、`mobile-notifications.html`、`mobile-signin.html`、`mobile-ai.html`。各自内联行为，只相对引用同目录 `shared.css`，零远程字体、脚本、图片或服务依赖。
+- 纯内容画布最大宽度 390px，视口更窄时自然收缩，居中、无边框外壳、灵动岛、虚拟状态栏；背景使用既有 `--bg`。桌面样式不重写，新增样式全部以 `.mobile` 限定。
+- 复用 `--accent` / `--accent-soft`、`--liked`、暖底中性与 `--hairline` / `--fill`。`liked` 只用于已点赞爱心，错误用文本与恢复动作表达，不用新红色。
+- 可读性适配：原始陶土色用于小字在暖底的对比不足 4.5:1；移动强调文字使用现有 `--accent` 70% 与 `--ink` 混合的派生别名 `--m-accent-text`，不引入新色值或修改全局 token。图形、引用竖线与 liked 保留原语义色。辅助文案采用现有 `--mute`。
+- 系统 UI 字体；正文按阅读器 15px/1.6，编辑器 16px，大标题 28px、主题标题 24px、代码 13px、辅助 12–13px；计数/时间戳 tabular。原样例 11px 作者引用行、onebox source 等按 owner 下限提升至 12px。
+- 内容边距 16px，壳层节奏按 4px；控件圆角 8px、面板 12px。阅读器内部 quote 6px、code 4px、pre 8px 以及元素内边距按正式/现有元素契约保留，优先级高于壳层默认值。
+- `aside.quote` 作者行、`aside.onebox` source/标题/说明、`details/summary`、`pre/code`、`hr` 与 `.table-scroll` 均有示例；代码保持原行不折断，表格在自身区域横向滚动，不撑破画布，onebox 缩略图规则 max-width:100%。
+- 功能图标使用现有内联 SVG 路径；返回箭头由现有 down 图形旋转，不引新库。动效 160ms，reduced-motion 时关闭动画/平滑滚动。
+
+### 流程、身份与状态
+
+- Browse：搜索、Latest/categories 选择抽屉、分类圆点、CategoryChip、CountStrip、未读 pill 与相对时间；返回恢复搜索、分类、主题与列表滚动。Notifications 入口仅登录可见。
+- Thread：单列阅读、同页分批追加、显示真实本地样例 Showing X of Y；批次中禁用按钮，失败原位 Retry 不丢位置；JumpToBottom 在未到底时显示，到底隐藏，按钮避开底栏。长代码和表格只在各自容器横向滚动。
+- 阅读内容沿用旧原型四条示例，另加一条明确标注 Reader formatting sample 的元素覆盖样例；列表历史计数为原型样例，不冒充真实实时论坛数据。未附正文的主题呈 Empty thread 并给出返回路径。
+- Reply：全屏 textarea、`Markdown · as samr`、每键保存指示、Cancel 保留草稿、发送按钮替代回车发送；重复提交防护，失败保留草稿；成功只新增本地回复，不触发真实写入。切题按 topic id 区分草稿。Enter 始终换行。
+- Sign in：浏览器批准步骤与粘贴码，空码禁用 Complete sign-in；本地 Browser approval dialog 模拟浏览器批准页，明确无真实连接，提供 `THREADLY-DEMO` 样例码；只接受该码，不保存授权码，不创建真实论坛密钥。
+- 匿名阅读不显示可交互点赞/Reply，点赞数量为纯文本；登录入口可见。Reply/Notifications 独立评审入口首次默认样例账户 samr，Browse/Thread 首次默认匿名；已有明确退出状态优先，不因打开独立入口覆盖身份。
+- Notifications：沿用类型图标 accent 色，未读 ● 与辅助名称；点击关联主题并标记本地已读。空态文案 `No notifications.`；匿名直接进入该页面提示登录，不泄露通知列表。
+- AI：主题上方的原生半屏 dialog，Summary/Translation 切换、结果可选择、免责行、关闭与焦点恢复；结果明确为本地样例。无实时模型连接，不新增 BYOK 表单。
+- 对话框开启/关闭正确转移焦点；主流程有键盘焦点；异步请求按导航/身份序号作废，迟到结果不串屏。所有交互命中至少 44×44px，列表行不低于 44px。
+- localStorage 可用时保存主题阅读位置、最深已读、身份、主题分批数量、主题草稿及亮暗偏好；不可用则本页内存降级并在草稿状态明确提示。
+
+### 评审状态入口
+
+不在产品界面增加测试开关。任一移动页面可添加 `?state=empty`，阅读页支持 `?state=load-error`、`?state=loading`、`?state=more-error`，回复页支持 `?state=reply-error`、`?state=session-expired`，AI 页支持 `?state=ai-error`。错误恢复不自动重写草稿，成功重试恢复对应区域。
+
+### Exit 条件与家族 UI 适用项
+
+- [ ] 六个移动关键屏齐全，可从 index Mobile 分组打开。
+- [ ] cooked-HTML quote/onebox/code/table/details/hr 与正式契约对齐，移动偏离项有明确理由。
+- [ ] 导航返回、加载恢复、已读与草稿保留可靠；匿名入口限制正确。
+- [ ] 亮暗双主题真实切换；正文/辅助/强调文字均达到 4.5:1。
+- [ ] 零外部资源依赖，相对引用有效；无小于 12px 的移动文字。
+- [ ] 可见操作命中至少 44×44px；键盘焦点、reduced-motion 与文字放大适用项有证据。
+- [ ] 减法、排版、状态、操作可靠、家族一致等清单适用项完成原型自查；原生宿主、Swift 实物对照与用户评审待后续，不以 HTML 自查代替。
+
+
+### 本轮自查证据（2026-11-22）
+
+- **通过：文件与资源**。六个移动 HTML 均独立内联交互，仅引用同目录 `shared.css`；无外部脚本、图片、字体、fetch、XHR 或 CSS import；导航页全部相对引用存在。
+- **通过：字号与语义样式**。移动专属声明的字号均不低于 12px；纯画布最大宽度 390px；控件、summary 与正文链接均显式声明最小 44×44px 命中尺寸。正文链接为满足触控命中使用 inline-flex，可能增加所在行的高度，这是移动触控适配，不改变链接语义。
+- **通过：配色计算**。根据共享 token 与移动派生强调文字色，分别计算亮/暗两态 ink、mute、accent-text 在 bg/surface/raised/accent-soft 上的 24 组对比，最小 4.66:1。此为样式色值计算，不冒充实际屏幕像素采样。
+- **通过：DOM 行为自查**。六个入口初始化与主题切换无脚本错误；搜索/返回保留、按批追加、quote/onebox/code/table/details/hr 覆盖、匿名隐藏点赞与 Reply、批准码流程、Cancel 草稿恢复、本地发送、点赞双向切换，以及 load-error/more-error/reply-error/session-expired/empty/ai-error 恢复路径均通过 DOM 环境检查。
+- **未验证：真实浏览器与原生环境**。无头浏览器启动失败；连接的浏览器访问服务不可用。因此未验证实际布局溢出、真实 44px 几何命中、原生 dialog 焦点锁定、读屏、200% 文字放大、实际 reduced-motion 效果与 iPhone 实机表现。已有尺寸和降级规则，不以源码声明替代平台证据。
+- **待评审**：owner 视觉/交互评审、Swift 实现与本原型对照、git 落账；本项目没有 git 元数据，未执行 commit/push。
