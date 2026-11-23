@@ -3,7 +3,7 @@
 Racket 社区论坛的原生客户端——不开浏览器标签页就能浏览、阅读、全文搜索
 [racket.discourse.group](https://racket.discourse.group)。Racket 的设计讨论、
 提案与生态动态都发生在这个论坛上,Threadly 给这些长技术帖一套配得上内容
-的阅读体验:目前面向桌面；移动端暂缓。
+的阅读体验:目前面向桌面；移动端是后续原生 roadmap（Swift/Kotlin），不是当前交付。
 
 [![CI](https://github.com/turlamai/threadly/actions/workflows/ci.yml/badge.svg)](https://github.com/turlamai/threadly/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/turlamai/threadly)](https://github.com/turlamai/threadly/releases/latest) [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue)](https://github.com/turlamai/threadly/releases/latest) [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE) ![Racket](https://img.shields.io/badge/Racket-9.3-9D00FF?logo=racket&logoColor=white)
 
@@ -61,7 +61,7 @@ Windows / Linux 的对齐排在 issue #17 和 #18。
 - [x] M1 —— Windows 与 Linux 原生壳
 - [x] M2 —— 登录态:user API key 流、回帖、点赞、通知
 - [x] M3 —— 阅读增值:帖子摘要、翻译
-- [ ] 移动端暂缓，仅在用户需求、维护能力与 Rivet 真机交付证据具备后评估，不作当前承诺。
+- [ ] 移动端是后续原生 roadmap（M4，Swift/Kotlin），桌面换线后继续开发，不作当前承诺。
 
 ## 安装
 

@@ -5,7 +5,9 @@ search [racket.discourse.group](https://racket.discourse.group) without
 opening a browser tab. The forum is where Racket's design decisions,
 proposals, and ecosystem news actually happen; Threadly gives those long
 technical threads the reading experience they deserve, on the desktop
-on macOS, Windows and Linux. Mobile is deferred.
+on macOS, Windows and Linux. Mobile apps are a planned native roadmap
+(Swift/Kotlin) after the desktop line settles; they are not a current
+delivery.
 
 [![CI](https://github.com/turlamai/threadly/actions/workflows/ci.yml/badge.svg)](https://github.com/turlamai/threadly/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/turlamai/threadly)](https://github.com/turlamai/threadly/releases/latest) [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue)](https://github.com/turlamai/threadly/releases/latest) [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE) ![Racket](https://img.shields.io/badge/Racket-9.3-9D00FF?logo=racket&logoColor=white)
 
@@ -77,8 +79,8 @@ issues #17 and #18.
       three desktop platforms
 - [x] M3 — reading value-add: AI thread summaries and translation over
       any OpenAI-compatible endpoint (configurable via the CLI)
-- [ ] Mobile is a deferred option, gated on user demand, maintenance capacity
-      and Rivet device-delivery evidence; it is not a current commitment.
+- [ ] Mobile is a planned native roadmap (M4, Swift/Kotlin), developed after
+      the desktop re-line; it is not a current commitment.
 
 ## AI features (M3)
 

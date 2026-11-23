@@ -25,7 +25,7 @@ Threadly 是 Racket 社区论坛(racket.discourse.group,Discourse 架构)的
 原生客户端:浏览最新主题、读长帖、全文搜索。论坛是 Racket 语言设计讨论
 与生态动态的主场,Threadly 给它一个配得上内容质量的阅读器。**全平台
 产品,与 Taskly 同标:桌面三平台(macOS/Windows/Linux)为当前维护范围；移动端
-iOS/iPadOS/Android 只保留按需求评估的方向，不是当前交付承诺。**技术形态遵循
+iOS/iPadOS/Android 为 M4 roadmap（平台原生语言），桌面换线后继续开发，不是当前交付承诺。**技术形态遵循
 [Rivet](https://github.com/turlamai/rivet) 线:**Racket 引擎 +
 各平台第一方原生 UI**。产品灵魂是**阅读体验**——壳的每一像素都要按这个
 标准做(对标线见 fulcrum 的 Raycast 对标)。
@@ -40,7 +40,7 @@ iOS/iPadOS/Android 只保留按需求评估的方向，不是当前交付承诺�
 | iOS/iPadOS 壳 | SwiftUI（平台原生） | (待建) | M4 |
 | watchOS 伴机 | SwiftUI + WatchConnectivity（平台原生，表端不嵌引擎） | (待建) | M4 尾段:依赖 iOS 宿主与 M2 登录态,通知伴机形态 |
 
-移动端执行 owner 2026-11-23 确认：各平台原生语言（iOS/iPadOS Swift、Android Kotlin），不复用 rivet 移动宿主，也不把 glaze 载体延伸到移动端；与引擎的数据边界随实现立项另定。
+移动端执行 owner 2026-11-23 确认：各平台原生语言（iOS/iPadOS Swift、Android Kotlin），不复用 rivet 移动宿主，也不把 glaze 载体延伸到移动端；这是持续 roadmap（M4，换线后继续开发），不是暂缓或取消。与引擎的数据边界随实现立项另定。
 
 ## 硬边界(本仓库存在的合法性根基,任何改动不得越过)
 
