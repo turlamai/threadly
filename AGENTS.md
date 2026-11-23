@@ -36,9 +36,11 @@ iOS/iPadOS/Android 只保留按需求评估的方向，不是当前交付承诺�
 | CLI | Racket | `racket/cli.rkt` | ✅ latest/topic/search/categories/doctor |
 | macOS 壳 | SwiftUI | `macos-host/` | ✅ 首片 |
 | Windows/Linux 壳 | WinUI 3 / GTK4+WebKitGTK | `windows/` `linux/` | ✅ M1(CI 编译门+launch smoke) |
-| Android 壳 | Kotlin(Rivet `platform/android`,Kotlin codegen 已就绪) | (待建) | M4 |
-| iOS/iPadOS 壳 | SwiftUI(Rivet portable Swift 层已跨编译,等其移动交付链 Phase 8) | (待建) | M4 |
-| watchOS 伴机 | SwiftUI + rivet WatchConnectivity typed companion(表端不嵌引擎) | (待建) | M4 尾段:依赖 iOS 宿主与 M2 登录态,通知伴机形态 |
+| Android 壳 | Kotlin（平台原生；Jetpack Compose 等按实现立项） | (待建) | M4 |
+| iOS/iPadOS 壳 | SwiftUI（平台原生） | (待建) | M4 |
+| watchOS 伴机 | SwiftUI + WatchConnectivity（平台原生，表端不嵌引擎） | (待建) | M4 尾段:依赖 iOS 宿主与 M2 登录态,通知伴机形态 |
+
+移动端执行 owner 2026-11-23 确认：各平台原生语言（iOS/iPadOS Swift、Android Kotlin），不复用 rivet 移动宿主，也不把 glaze 载体延伸到移动端；与引擎的数据边界随实现立项另定。
 
 ## 硬边界(本仓库存在的合法性根基,任何改动不得越过)
 
