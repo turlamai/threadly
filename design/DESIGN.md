@@ -1,7 +1,8 @@
-# Threadly DESIGN.md — 视觉与交互契约（单一真源）
+# Threadly DESIGN.md — 视觉与交互契约
 
-原型（`design/prototype/`）与实现（`macos-host/`、`windows/`、`linux/` 三宿主）都遵循本文件；改视觉先改这里，再同步实现。
-Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accent / accent-soft）、`ContentView.swift` 内嵌 reader 样式（排版、发丝线、liked 色、列宽）与 `site/styles.css` 家族暖色变量（壳层中性色），保证原型 → 三宿主实现零翻译成本。
+原型（`design/prototype/`）与实现（`macos-host/`、`windows/`、`linux/` 三宿主）都遵循本文件的语义、不变式与平台差异；**数值不在此复制**。
+
+**真源分工**：颜色、字体栈、字号、列宽、圆角、间距与动效时长的具体值以 `design/prototype/shared.css` 为唯一真源（亮暗成对；accent 系与 `macos-host/Sources/RivetHost/DesignTokens.swift` 同源，壳层中性色与 `site/styles.css` 同源，阅读器排版见 `ContentView.swift`）；本文件只记语义、来源与决策。改值改 CSS，改语义改本文件。
 阅读器 cooked-HTML 元素级契约另见 `docs/reader-design.md`（0.15.0 已交付，与本文件叠加使用，此处不重复）。
 
 ## Brief（2026-11-11）
@@ -14,7 +15,7 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 
 ## 设计原则（HIG 内核 · Threadly 特有）
 
-- **阅读即产品**：壳的每一像素为长帖让路——680px 单列、发丝线分隔、无卡片堆叠；论坛的 cooked HTML 原样抵达读者，本地不重排其语义。
+- **阅读即产品**：壳的每一像素为长帖让路——固定宽度的单列阅读列、发丝线分隔、无卡片堆叠；论坛的 cooked HTML 原样抵达读者，本地不重排其语义。
 - **论坛是唯一事实源**：like 状态、编辑、删除一律以论坛为准；每条内容保留作者与原链（"Open on the forum" 一键可达）；缓存是临时的，不是权威。
 - **匿名优先，登录降级不加码**：匿名可完整浏览/搜索/阅读；未登录时写入口不出现死按钮——隐藏（Reply 按钮、Notifications 行）或引导登录（回复撰写器内一键 Sign in）。
 - **反馈及时且不串屏**：批次加载有进行态与计数（Showing X of Y）；加载失败 Retry 原位、列表选择不动；被取代的响应作废，迟到的帖子永不落在错误的标题下；每个写操作有 pending 与 settle 两态。
@@ -31,10 +32,10 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 | `--bg --surface --raised --line --ink --mute` | 家族暖底中性系：画布 / 侧栏浮层工具栏 / hover 占位弱底 / 壳层分隔 / 文字 | `site/styles.css` |
 | `--hairline --fill` | 阅读器帖子分隔/表格线 / 行内代码引用底 hover | `ContentView.swift` reader |
 
-- **accent 不随外观提亮**是应用现状（SwiftUI `.tint` 固定）；站点暗色提亮为 `#d08a6e`，未进入应用——如未来对齐须先改本表并同步 `DesignTokens.swift`。
+- **accent 不随外观提亮**是应用现状（SwiftUI `.tint` 固定）；站点暗色 accent 有提亮值，未进入应用——如未来对齐须先改本表并同步 `DesignTokens.swift` 与 `shared.css`。
 - 壳层 chrome（侧栏/工具栏材质）在三宿主上跟随系统材质（AppKit sidebar / WinUI / GTK4），表中中性色是原型与语义基准，宿主材质允许差异；阅读器文档三宿主必须逐值一致（`docs/reader-design.md` 契约）。
-- **字体**：`system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif`；正文 15px/1.6（阅读器与列表一致），阅读列宽 680px（padding `22px 28px 48px`）；线程头 `.title2` ≈22px/600；次级 13px（callout）；caption 12px；caption2 11px（计数/时间戳，`tabular-nums` 等宽数字）；代码 `ui-monospace` 13px。
-- **圆角**：窗口 12px（原型画布）· 搜索框/编辑器/代码块 8px · 控件与行内元素 6px · 胶囊 99px。**间距节奏**：4/8/12/16/24。**动效**：120ms ease，不过度。
+- **字体角色**：系统 sans 栈；正文（阅读器与列表同一基准）、线程头、次级（callout）、caption、caption2（计数/时间戳用 `tabular-nums` 等宽数字）、代码 mono——各层级的字号/行高见 `shared.css`；阅读列宽固定为单列（原则见「阅读即产品」）。
+- **几何与动效**：窗口 / 搜索框·编辑器·代码块 / 控件与行内元素 / 胶囊各有圆角层级，间距节奏与动效时长均以 `shared.css` 为准，动效不过度。
 - **语言**：界面文案英文（跟随现行实现，如 "Search the archive"、"Load more"），契约文档与评审注释中文。
 
 ## 组件词汇（含状态）
@@ -79,13 +80,13 @@ Tokens 逐值提取自 `macos-host/Sources/RivetHost/DesignTokens.swift`（accen
 ### 文件与视觉映射
 
 - 六个独立入口：`prototype/mobile-browse.html`、`mobile-thread.html`、`mobile-reply.html`、`mobile-notifications.html`、`mobile-signin.html`、`mobile-ai.html`。各自内联行为，只相对引用同目录 `shared.css`，零远程字体、脚本、图片或服务依赖。
-- 纯内容画布最大宽度 390px，视口更窄时自然收缩，居中、无边框外壳、灵动岛、虚拟状态栏；背景使用既有 `--bg`。桌面样式不重写，新增样式全部以 `.mobile` 限定。
+- 纯内容画布有一个固定的最大宽度（手机内容宽度），视口更窄时自然收缩，居中、无边框外壳、灵动岛、虚拟状态栏；背景使用既有 `--bg`。桌面样式不重写，新增样式全部以 `.mobile` 限定。
 - 复用 `--accent` / `--accent-soft`、`--liked`、暖底中性与 `--hairline` / `--fill`。`liked` 只用于已点赞爱心，错误用文本与恢复动作表达，不用新红色。
-- 可读性适配：原始陶土色用于小字在暖底的对比不足 4.5:1；移动强调文字使用现有 `--accent` 70% 与 `--ink` 混合的派生别名 `--m-accent-text`，不引入新色值或修改全局 token。图形、引用竖线与 liked 保留原语义色。辅助文案采用现有 `--mute`。
-- 系统 UI 字体；正文按阅读器 15px/1.6，编辑器 16px，大标题 28px、主题标题 24px、代码 13px、辅助 12–13px；计数/时间戳 tabular。原样例 11px 作者引用行、onebox source 等按 owner 下限提升至 12px。
-- 内容边距 16px，壳层节奏按 4px；控件圆角 8px、面板 12px。阅读器内部 quote 6px、code 4px、pre 8px 以及元素内边距按正式/现有元素契约保留，优先级高于壳层默认值。
+- 可读性适配：原始陶土色用于小字在暖底的对比不足 4.5:1；移动强调文字使用由现有 `--accent` 与 `--ink` 混合的派生别名 `--m-accent-text`，不引入新色值或修改全局 token。图形、引用竖线与 liked 保留原语义色。辅助文案采用现有 `--mute`。
+- 系统 UI 字体；正文沿用阅读器基准，编辑器、大标题、主题标题、代码、辅助各有层级（值见 `shared.css` 的 `.mobile` 规则）；计数/时间戳 tabular。移动文字不得低于 owner 规定的下限（12px），原样例中低于下限的作者引用行、onebox source 等已提升。
+- 内容边距与壳层节奏按 4px 节奏；控件与面板各有圆角层级（值见 CSS）。阅读器内部 quote / code / pre 圆角以及元素内边距按正式/现有元素契约保留，优先级高于壳层默认值。
 - `aside.quote` 作者行、`aside.onebox` source/标题/说明、`details/summary`、`pre/code`、`hr` 与 `.table-scroll` 均有示例；代码保持原行不折断，表格在自身区域横向滚动，不撑破画布，onebox 缩略图规则 max-width:100%。
-- 功能图标使用现有内联 SVG 路径；返回箭头由现有 down 图形旋转，不引新库。动效 160ms，reduced-motion 时关闭动画/平滑滚动。
+- 功能图标使用现有内联 SVG 路径；返回箭头由现有 down 图形旋转，不引新库。动效短促（值见 CSS），reduced-motion 时关闭动画/平滑滚动。
 
 ### 流程、身份与状态
 
