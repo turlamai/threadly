@@ -64,7 +64,7 @@ to survive the launch smoke. Rivet does not force that environment variable in
 shipped applications: GTK may still select a distribution-provided X11 backend
 for compatibility. X11 and XWayland are best-effort paths, not release gates,
 and Rivet does not add X11-only application APIs. See
-[Linux display policy](../../../docs/linux-display.md).
+[Linux display policy](https://github.com/turlamai/rivet/blob/main/docs/linux-display.md) (rivet repository).
 
 ## Updates
 
