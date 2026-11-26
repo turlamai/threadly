@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threadly — Prototype navigation</title>
+<link rel="stylesheet" href="prototype/shared.css">
+<style>
+  /* ==== index only: prototype navigation — each entry is a page <title> ==== */
+  body { display:block; padding:0 24px 48px; background:var(--bg); font-size:14px; line-height:1.5; }
+  .index { max-width:680px; margin:0 auto; }
+  .index-head { display:flex; align-items:center; gap:10px; padding-top:32px; }
+  .index-head h1 { flex:1; min-width:0; font-size:24px; font-weight:600; line-height:1.3; }
+  .lede { margin-top:8px; color:var(--mute); }
+  .index section { margin-top:32px; }
+  .index h2 { font-size:18px; font-weight:600; line-height:1.4; }
+  .scope { margin-top:4px; font-size:13px; color:var(--mute); }
+  .index ul { list-style:none; margin-top:8px; border-top:1px solid var(--line); }
+  .index li { border-bottom:1px solid var(--line); }
+  .index li a { display:flex; align-items:center; min-height:44px; color:var(--ink); text-decoration:underline; text-underline-offset:4px; }
+  .index li a:hover { text-decoration-thickness:2px; }
+  .index .note { margin-top:24px; }
+</style>
+</head>
+<body>
+<main class="index">
+  <header>
+    <div class="index-head">
+      <h1>Threadly prototypes</h1>
+      <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch to dark theme" title="Switch to dark theme"><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.2 8.2 0 0 1 8.8 4a8.4 8.4 0 1 0 11.2 11.2Z"></path></svg><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"></path></svg></button>
+    </div>
+    <p class="lede">Desktop, iPhone and reader prototypes. Every page is a local simulation with sample content.</p>
+  </header>
+  <section aria-labelledby="desktopHeading">
+    <h2 id="desktopHeading">Desktop</h2>
+    <p class="scope">1180px window · light and dark</p>
+    <ul>
+      <li><a href="prototype/browse.html">Threadly — Browse（英雄屏）</a></li>
+      <li><a href="prototype/thread.html">Threadly — Thread reader</a></li>
+      <li><a href="prototype/reply.html">Threadly — Reply composer</a></li>
+      <li><a href="prototype/signin.html">Threadly — Sign in</a></li>
+      <li><a href="prototype/notifications.html">Threadly — Notifications</a></li>
+      <li><a href="prototype/ai.html">Threadly — AI panel（BYOK）</a></li>
+    </ul>
+  </section>
+  <section aria-labelledby="mobileHeading">
+    <h2 id="mobileHeading">Mobile</h2>
+    <p class="scope">390×844 content canvas · light and dark</p>
+    <ul>
+      <li><a href="prototype/mobile-browse.html">Threadly — Mobile browse</a></li>
+      <li><a href="prototype/mobile-thread.html">Threadly — Mobile thread</a></li>
+      <li><a href="prototype/mobile-reply.html">Threadly — Mobile reply</a></li>
+      <li><a href="prototype/mobile-signin.html">Threadly — Mobile signin</a></li>
+      <li><a href="prototype/mobile-notifications.html">Threadly — Mobile notifications</a></li>
+      <li><a href="prototype/mobile-ai.html">Threadly — Mobile ai</a></li>
+    </ul>
+  </section>
+  <section aria-labelledby="readerHeading">
+    <h2 id="readerHeading">Reader</h2>
+    <p class="scope">Cooked-HTML element sample · follows the system appearance</p>
+    <ul>
+      <li><a href="reader/index.html">Threadly reader prototype — 0.15.0</a></li>
+    </ul>
+  </section>
+  <section aria-labelledby="contractHeading">
+    <h2 id="contractHeading">Contract</h2>
+    <ul>
+      <li><a href="DESIGN.md">DESIGN.md</a></li>
+    </ul>
+  </section>
+  <p class="note">Mobile review states (?state=…) are listed in DESIGN.md.</p>
+</main>
+<script>
+  // Same toggle as the prototype pages; here the theme root is <body>.
+  const themeBtn = document.getElementById('themeBtn');
+  const syncTheme = () => {
+    const name = document.body.classList.contains('dark') ? 'Switch to light theme' : 'Switch to dark theme';
+    themeBtn.setAttribute('aria-label', name); themeBtn.title = name;
+  };
+  themeBtn.addEventListener('click', () => { document.body.classList.toggle('dark'); syncTheme(); });
+  syncTheme();
+</script>
+</body>
+</html>

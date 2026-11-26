@@ -124,3 +124,23 @@
 - **通过：DOM 行为自查**。六个入口初始化与主题切换无脚本错误；搜索/返回保留、按批追加、quote/onebox/code/table/details/hr 覆盖、匿名隐藏点赞与 Reply、批准码流程、Cancel 草稿恢复、本地发送、点赞双向切换，以及 load-error/more-error/reply-error/session-expired/empty/ai-error 恢复路径均通过 DOM 环境检查。
 - **未验证：真实浏览器与原生环境**。无头浏览器启动失败；连接的浏览器访问服务不可用。因此未验证实际布局溢出、真实 44px 几何命中、原生 dialog 焦点锁定、读屏、200% 文字放大、实际 reduced-motion 效果与 iPhone 实机表现。已有尺寸和降级规则，不以源码声明替代平台证据。
 - **待评审**：owner 视觉/交互评审、Swift 实现与本原型对照、git 落账；本项目没有 git 元数据，未执行 commit/push。
+
+
+## 原型对齐家族基线（2026-11-26）
+
+对齐家族设计规范修订 `2026-11-20-minimal-family`；起始 SHA `d00ad58`。范围仅 `design/`：信息架构、强调色、布局结构、样例数据与文案含义不变，主题的存储与切换方式不变（页面仍是 `#app.dark`，导航页为 `body.dark`）。
+
+| 规则 | 结果 | 变更与证据 |
+|---|---|---|
+| R1 主题切换 | 通过 | 六个桌面页与新增的 `index.html`：`◐` 字形换为内联线性 SVG（浅色显太阳、深色显月亮，16px、stroke 1.7）；`.iconbtn` 改为安静图标钮（28px、透明底无边框、hover `--fill`），同栏 `.toolbtn` 由 26px 提到同高 28px；`aria-label` 与 `title` 用英文 "Switch to light theme" / "Switch to dark theme" 并随主题更新（原中文 title 是英文页的文案缺陷）。状态栏评审注记里的「◐」字样一并去掉。移动端的文字切换钮（Light / Dark）无字形问题，未改。 |
+| R2 12px 下限 | 通过 | 源扫描 sub-12px 声明 12 → 0：`shared.css` 的 `.sect` `.chip` `.counts` `.rel` `.note`，`thread.html` 的头像首字母与引用作者行，`notifications.html` 的时间，`reader/index.html` 四处。渲染 small：桌面 6 页 × 亮暗 110 → 0，reader 样例 16 → 0。列表行标题行高 1.35 → 1.4。无记录例外。 |
+| R3 减弱动效与可见焦点 | 通过 | `shared.css` 新增全局 `prefers-reduced-motion` 块与 `:focus-visible`（2px `--accent`，offset 2px）；`.mobile` 既有的同名规则特异性更高，行为不变。`reader/index.html` 同步两项，演示用的跳底按钮在 reduced motion 下改为瞬时滚动。 |
+| R4 原型完整性 | 通过 | 新增 `design/index.html`：按 `<title>` 列出 13 个原型页（含 Mobile 分组，移动端 Exit 条件第 1 项此前无导航页）并链接本文件；六个移动页的 `../index.html` 返回链接由悬空变为可达（dangling 6 → 0）。零远程资源。 |
+| R5 可访问名称 | 通过 | 桌面页装饰性内联 SVG 全部 `aria-hidden="true"`；thread 点赞钮加 `aria-label`（Like / Unlike this post）。渲染 nameless 0 → 0。 |
+| R6 布局缺陷 | 通过 | 1280×800：browse 侧栏分类名较长的三行，未读 pill 与时间被侧栏边缘裁掉 → meta 放不下时换行、尾组靠右；signin 状态栏提示比右侧注记低 6px → 对齐。最小窗口宽 920（`RivetHostApp.swift` 的 `minWidth`）：原型窗口不收缩、横向溢出 236px、主题钮落到视口外 → 窗口可收缩，溢出 0；thread 工具栏 "Open on the forum" 折成两行 → 不折行、标题省略；signin 状态栏注记折行 → 注记单行、提示自行换行。 |
+| R7 契约同步 | 通过 | 本节；token 表无数值变化。字体角色一行里的 caption2 在原型里已无对应文字（计数、时间戳、分类 chip、未读 pill 与 caption 同为 12px），宿主实现仍用 `.caption2`，见遗留。 |
+| R8 仓库门禁 | 不适用 | 仓内没有读取 `design/` 的 workflow、脚本或测试（`.github/workflows`、`scripts/`、`tests/` 均不引用）。 |
+
+**渲染证据（无头 Chromium，2026-11-26）**：桌面 6 页 × 亮暗 1280×800、移动 6 页 × 亮暗 390×844、导航页与 reader 样例各 × 亮暗：`small` 0、`overflowX` 0、`nameless` 0、页面错误与加载失败 0；`low`（4.5:1 以下文字对，近似值）与改动前逐页相同（browse 12 / 14、thread 9 / 9，其余 1–2），移动与导航页 0。reader 样例深色下的 `low` 读数是工具按白色背景估算的假象（实际画布 #121212）。2026-11-22 自查里「未验证：真实浏览器」的布局溢出一项，移动六页至此有了渲染证据；焦点环的像素、原生 dialog 焦点、读屏、200% 文字放大与真机仍未验证（该渲染器对 `:focus-visible` 统一报告 3px currentColor，规则在 CSSOM 中命中聚焦控件，2px accent 未能取证）。
+
+**遗留（需产品决策，未改）**：深色下强调色文字与论坛色分类 chip 的对比（主按钮 3.23:1、Sign in / Sign out 3.75:1、Racket chip 2.77:1；契约钉死 accent 不随外观提亮、chip 用论坛自己的颜色）；thread 点赞钮仍用字体字形 ♡ / ♥（三宿主 reader 模板同款）；阅读器内点赞与 Load more 按钮高约 19–22px、更新横幅按钮 24px，低于 28px（属 reader 契约与宿主实现）。
