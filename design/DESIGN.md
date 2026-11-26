@@ -136,7 +136,7 @@
 | R1 主题切换 | 通过 | 六个桌面页与本地导航页 `index.html`：`◐` 字形换为内联线性 SVG（浅色显太阳、深色显月亮，16px、stroke 1.7）；`.iconbtn` 改为安静图标钮（28px、透明底无边框、hover `--fill`），同栏 `.toolbtn` 由 26px 提到同高 28px；`aria-label` 与 `title` 用英文 "Switch to light theme" / "Switch to dark theme" 并随主题更新（原中文 title 是英文页的文案缺陷）。状态栏评审注记里的「◐」字样一并去掉。移动端的文字切换钮（Light / Dark）无字形问题，未改。 |
 | R2 12px 下限 | 通过 | 源扫描 sub-12px 声明 12 → 0：`shared.css` 的 `.sect` `.chip` `.counts` `.rel` `.note`，`thread.html` 的头像首字母与引用作者行，`notifications.html` 的时间，`reader/index.html` 四处。渲染 small：桌面 6 页 × 亮暗 110 → 0，reader 样例 16 → 0。列表行标题行高 1.35 → 1.4。无记录例外。 |
 | R3 减弱动效与可见焦点 | 通过 | `shared.css` 新增全局 `prefers-reduced-motion` 块与 `:focus-visible`（2px `--accent`，offset 2px）；`.mobile` 既有的同名规则特异性更高，行为不变。`reader/index.html` 同步两项，演示用的跳底按钮在 reduced motion 下改为瞬时滚动。 |
-| R4 原型完整性 | 通过 | `design/index.html` 是本地评审用导航页（按 `<title>` 列出 13 个原型页，含 Mobile 分组，链接本文件），按 2026-11-26 的原型流程不提交；六个移动页的 `../index.html` 返回链接指向它，克隆后由 agent 本地生成。零远程资源。 |
+| R4 原型完整性 | 通过 | `design/index.html` 是评审入口导航页（按 `<title>` 列出 13 个原型页，含 Mobile 分组，链接本文件），按 2026-11-26 的原型流程当时未提交；六个移动页的 `../index.html` 返回链接指向它。提交状态见「对比度落地」一节。零远程资源。 |
 | R5 可访问名称 | 通过 | 桌面页装饰性内联 SVG 全部 `aria-hidden="true"`；thread 点赞钮加 `aria-label`（Like / Unlike this post）。渲染 nameless 0 → 0。 |
 | R6 布局缺陷 | 通过 | 1280×800：browse 侧栏分类名较长的三行，未读 pill 与时间被侧栏边缘裁掉 → meta 放不下时换行、尾组靠右；signin 状态栏提示比右侧注记低 6px → 对齐。最小窗口宽 920（`RivetHostApp.swift` 的 `minWidth`）：原型窗口不收缩、横向溢出 236px、主题钮落到视口外 → 窗口可收缩，溢出 0；thread 工具栏 "Open on the forum" 折成两行 → 不折行、标题省略；signin 状态栏注记折行 → 注记单行、提示自行换行。 |
 | R7 契约同步 | 通过 | 本节；token 表无数值变化。字体角色一行里的 caption2 在原型里已无对应文字（计数、时间戳、分类 chip、未读 pill 与 caption 同为 12px），宿主实现仍用 `.caption2`，见遗留。 |
@@ -160,6 +160,7 @@
 
 - **移动端**：`--m-accent-text` 仍由 `--accent` 与 `--ink` 派生，随新值自动过线，未另改。
 - **可访问名称**：`mobile-browse.html` 搜索框的名字原先只挂在 `<label>` 的 `aria-label` 上，输入框自身补 `aria-label`。
+- **评审入口提交**：`design/index.html` 自本次起入库。它是自包含的导航页（内联样式、不加载 `shared.css`、跟随系统外观），按 `<title>` 列出桌面 7 项（含 `reader/index.html` 排版样例）与移动 6 页。此前它不入库，而六个移动页的返回链接指向它，克隆后是悬空链接。
 - **产品侧待同步**：`DesignTokens.swift`（accent 亮暗对、liked）、三宿主 reader 模板与 `docs/reader-design.md`（阅读器 accent/liked 值）、应用内分类 chip 取色，随下一个实现切片对齐。
 
 验证：无头 Edge，桌面 6 页 × 亮暗 1280×800、移动 6 页 × 亮暗 390×844、reader × 亮暗，脚本测量：低于 4.5:1 的文字对由 47 / 44 降为 0 / 0；`small` 0、`overflowX` 0、`nameless` 0、页面错误 0。
