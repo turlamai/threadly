@@ -10,19 +10,22 @@
    This stylesheet is the near-verbatim source the three host
    templates embed; platform diffs are font stacks + bridge name.
    ============================================================ */
-:root { color-scheme: light dark; }
+:root { color-scheme: light dark; --reader-accent: #A25032; --reader-liked: #DA2623; --reader-demo: #6B6660; }
+@media (prefers-color-scheme: dark) {
+  :root { --reader-accent: #CF8266; --reader-liked: #E2504D; --reader-demo: #A6A099; }
+}
 
 /* ---- demo chrome (not part of the contract) ---- */
 .demo-banner {
   position: sticky; top: 0; z-index: 10;
   font-size: 12px; padding: 8px 16px; text-align: center;
-  background: rgba(193,95,60,.12); color: #C15F3C;
+  background: rgba(193,95,60,.12); color: var(--reader-accent);
   border-bottom: 1px solid rgba(193,95,60,.3);
 }
 .demo-h2 {
   max-width: 680px; margin: 40px auto 8px; padding: 0 28px;
   font-size: 12px; font-weight: 600; letter-spacing: .08em;
-  text-transform: uppercase; color: rgba(128,128,128,.95);
+  text-transform: uppercase; color: var(--reader-demo);
 }
 
 /* ---- reader document (the contract) ---- */
@@ -51,7 +54,7 @@ body {
   width: 26px; height: 26px; border-radius: 50%;
   margin-right: 2px; background: rgba(128,128,128,.18);
 }
-.meta .author { font-weight: 600; color: #C15F3C; }
+.meta .author { font-weight: 600; color: var(--reader-accent); }
 .meta .dot { opacity: .45; }
 .meta .count, .like .count {
   font-size: 12px; margin-left: 3px; color: inherit;
@@ -61,9 +64,9 @@ body {
   font-size: 15px; line-height: 1; color: rgba(128,128,128,.75);
   padding: 2px 6px;
 }
-.like:hover { color: #C15F3C; }
-.like.liked { color: #E0413E; }
-.like.liked .count { color: #E0413E; }
+.like:hover { color: var(--reader-accent); }
+.like.liked { color: var(--reader-liked); }
+.like.liked .count { color: var(--reader-liked); }
 
 /* content elements */
 h1,h2,h3 { line-height: 1.3; }
@@ -89,7 +92,7 @@ blockquote {
   color: color-mix(in srgb, currentColor 78%, transparent);
 }
 img, video { max-width: 100%; height: auto; border-radius: 6px; }
-a { color: #C15F3C; }
+a { color: var(--reader-accent); }
 hr {
   border: none; border-top: 1px solid rgba(128,128,128,.2);
   margin: 20px 0;
@@ -116,7 +119,7 @@ aside.onebox .source {
   color: color-mix(in srgb, currentColor 60%, transparent); margin-bottom: 4px;
 }
 aside.onebox h4 { margin: 2px 0 4px; font-size: 15px; }
-aside.onebox h4 a { color: #C15F3C; text-decoration: none; }
+aside.onebox h4 a { color: var(--reader-accent); text-decoration: none; }
 aside.onebox p { margin: 4px 0; font-size: 13px; color: color-mix(in srgb, currentColor 72%, transparent); }
 aside.onebox .thumbnail { float: right; margin-left: 12px; max-width: 40%; }
 /* details / summary */
@@ -126,7 +129,7 @@ details {
 }
 details summary {
   cursor: pointer; padding: 8px 12px; font-weight: 600; font-size: 13px;
-  color: #C15F3C; list-style: none;
+  color: var(--reader-accent); list-style: none;
 }
 details summary::-webkit-details-marker { display: none; }
 details summary::before { content: "▸"; display: inline-block; margin-right: 6px; transition: transform .15s; }
@@ -148,7 +151,7 @@ th { font-weight: 600; background: rgba(128,128,128,.08); }
 }
 .morebar button {
   background: none; border: 1px solid rgba(193,95,60,.55);
-  border-radius: 6px; cursor: pointer; color: #C15F3C; font-size: 12px;
+  border-radius: 6px; cursor: pointer; color: var(--reader-accent); font-size: 12px;
   padding: 3px 12px;
 }
 .morebar button:hover { background: rgba(193,95,60,.12); }
@@ -181,12 +184,12 @@ th { font-weight: 600; background: rgba(128,128,128,.08); }
 }
 .row .cat {
   font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 8px;
-  background: rgba(193,95,60,.15); color: #C15F3C;
+  background: rgba(193,95,60,.15); color: var(--reader-accent);
 }
 .row .n { font-size: 12px; color: color-mix(in srgb, currentColor 62%, transparent); }
 .row .when { font-size: 12px; color: color-mix(in srgb, currentColor 62%, transparent); min-width: 34px; text-align: right; }
 .row .new {
-  font-size: 12px; font-weight: 600; color: #C15F3C;
+  font-size: 12px; font-weight: 600; color: var(--reader-accent);
   border: 1px solid rgba(193,95,60,.5); border-radius: 9px;
   padding: 0 7px; line-height: 16px;
 }
@@ -196,7 +199,7 @@ th { font-weight: 600; background: rgba(128,128,128,.08); }
 }
 .jump-demo {
   position: fixed; right: 26px; bottom: 26px;
-  font-size: 12px; color: #C15F3C;
+  font-size: 12px; color: var(--reader-accent);
   border: 1px solid rgba(193,95,60,.55); border-radius: 14px;
   padding: 5px 14px; background: transparent; cursor: pointer;
 }
