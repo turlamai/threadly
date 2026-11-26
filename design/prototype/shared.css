@@ -2,12 +2,15 @@
 :root {
   --bg:#faf7f2; --surface:#ffffff; --raised:#f0ebe2; --line:#e8e2d9;
   --ink:#1f1d1a; --mute:#6b6660;
-  --accent:#c15f3c; --accent-soft:#f7e5dd; --liked:#e0413e;
+  --accent:#a25032; --accent-soft:#f7e5dd; --liked:#da2623;
+  /* 分类 chip：各类别一个色相，亮色加深、暗色提亮，文字压在自身 14% 的弱底上不低于 4.5:1 */
+  --chip-announce:#95601b; --chip-racket:#9500f2; --chip-general:#1c7391; --chip-internals:#307848; --chip-meta:#6c6c6c;
   --hairline:rgba(128,128,128,.2); --fill:rgba(128,128,128,.08);
 }
 .dark {
   --bg:#1b1a18; --surface:#24221f; --raised:#2e2b27; --line:#35322d;
-  --ink:#ece9e2; --mute:#a6a099; --accent-soft:#3b2a22;
+  --ink:#ece9e2; --mute:#a6a099; --accent:#cf8266; --accent-soft:#3b2a22; --liked:#e2504d;
+  --chip-announce:#d98e2b; --chip-racket:#c261ff; --chip-general:#28a3cf; --chip-internals:#45ad68; --chip-meta:#999999;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
 body {

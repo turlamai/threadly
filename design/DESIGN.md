@@ -27,12 +27,13 @@
 
 | Token | 语义 | 来源 |
 |---|---|---|
-| `--accent --accent-soft` | 陶土 accent：作者名/链接/按钮/类型图标/未读 pill + 选中行/更新横幅/disclosure 弱底（tint 固定不随外观） | `DesignTokens.swift` |
+| `--accent --accent-soft` | 陶土 accent：作者名/链接/按钮/类型图标/未读 pill + 选中行/更新横幅/disclosure 弱底（tint 固定不随外观；accent 本身亮暗成对，见下） | `DesignTokens.swift` |
+| `--chip-announce --chip-racket --chip-general --chip-internals --chip-meta` | 分类 chip 与侧栏圆点的论坛色相；文字色亮暗成对（派生自论坛原色的同色相加深/提亮值） | 论坛类别色 · `shared.css` |
 | `--liked` | 已点赞爱心（唯一的红） | `ContentView.swift` reader |
 | `--bg --surface --raised --line --ink --mute` | 家族暖底中性系：画布 / 侧栏浮层工具栏 / hover 占位弱底 / 壳层分隔 / 文字 | `site/styles.css` |
 | `--hairline --fill` | 阅读器帖子分隔/表格线 / 行内代码引用底 hover | `ContentView.swift` reader |
 
-- **accent 不随外观提亮**是应用现状（SwiftUI `.tint` 固定）；站点暗色 accent 有提亮值，未进入应用——如未来对齐须先改本表并同步 `DesignTokens.swift` 与 `shared.css`。
+- **accent 亮暗成对**（2026-11-26 起）：亮色加深到可作小字，暗色提亮；原「accent 不随外观提亮」是应用现状（SwiftUI `.tint` 固定），产品侧 `DesignTokens.swift` 尚未跟上，属漂移台账项，见「对比度落地」一节。
 - 壳层 chrome（侧栏/工具栏材质）在三宿主上跟随系统材质（AppKit sidebar / WinUI / GTK4），表中中性色是原型与语义基准，宿主材质允许差异；阅读器文档三宿主必须逐值一致（`docs/reader-design.md` 契约）。
 - **字体角色**：系统 sans 栈；正文（阅读器与列表同一基准）、线程头、次级（callout）、caption、caption2（计数/时间戳用 `tabular-nums` 等宽数字）、代码 mono——各层级的字号/行高见 `shared.css`；阅读列宽固定为单列（原则见「阅读即产品」）。
 - **几何与动效**：窗口 / 搜索框·编辑器·代码块 / 控件与行内元素 / 胶囊各有圆角层级，间距节奏与动效时长均以 `shared.css` 为准，动效不过度。
@@ -135,7 +136,7 @@
 | R1 主题切换 | 通过 | 六个桌面页与本地导航页 `index.html`：`◐` 字形换为内联线性 SVG（浅色显太阳、深色显月亮，16px、stroke 1.7）；`.iconbtn` 改为安静图标钮（28px、透明底无边框、hover `--fill`），同栏 `.toolbtn` 由 26px 提到同高 28px；`aria-label` 与 `title` 用英文 "Switch to light theme" / "Switch to dark theme" 并随主题更新（原中文 title 是英文页的文案缺陷）。状态栏评审注记里的「◐」字样一并去掉。移动端的文字切换钮（Light / Dark）无字形问题，未改。 |
 | R2 12px 下限 | 通过 | 源扫描 sub-12px 声明 12 → 0：`shared.css` 的 `.sect` `.chip` `.counts` `.rel` `.note`，`thread.html` 的头像首字母与引用作者行，`notifications.html` 的时间，`reader/index.html` 四处。渲染 small：桌面 6 页 × 亮暗 110 → 0，reader 样例 16 → 0。列表行标题行高 1.35 → 1.4。无记录例外。 |
 | R3 减弱动效与可见焦点 | 通过 | `shared.css` 新增全局 `prefers-reduced-motion` 块与 `:focus-visible`（2px `--accent`，offset 2px）；`.mobile` 既有的同名规则特异性更高，行为不变。`reader/index.html` 同步两项，演示用的跳底按钮在 reduced motion 下改为瞬时滚动。 |
-| R4 原型完整性 | 通过 | `design/index.html` 是本地评审用导航页（按 `<title>` 列出 13 个原型页，含 Mobile 分组，链接本文件），按 2026-11-26 的原型流程不提交；六个移动页的 `../index.html` 返回链接指向它，克隆后由 agent 本地生成。零远程资源。 |
+| R4 原型完整性 | 通过 | `design/index.html` 是评审入口导航页（按 `<title>` 列出 13 个原型页，含 Mobile 分组，链接本文件），按 2026-11-26 的原型流程当时未提交；六个移动页的 `../index.html` 返回链接指向它。提交状态见「对比度落地」一节。零远程资源。 |
 | R5 可访问名称 | 通过 | 桌面页装饰性内联 SVG 全部 `aria-hidden="true"`；thread 点赞钮加 `aria-label`（Like / Unlike this post）。渲染 nameless 0 → 0。 |
 | R6 布局缺陷 | 通过 | 1280×800：browse 侧栏分类名较长的三行，未读 pill 与时间被侧栏边缘裁掉 → meta 放不下时换行、尾组靠右；signin 状态栏提示比右侧注记低 6px → 对齐。最小窗口宽 920（`RivetHostApp.swift` 的 `minWidth`）：原型窗口不收缩、横向溢出 236px、主题钮落到视口外 → 窗口可收缩，溢出 0；thread 工具栏 "Open on the forum" 折成两行 → 不折行、标题省略；signin 状态栏注记折行 → 注记单行、提示自行换行。 |
 | R7 契约同步 | 通过 | 本节；token 表无数值变化。字体角色一行里的 caption2 在原型里已无对应文字（计数、时间戳、分类 chip、未读 pill 与 caption 同为 12px），宿主实现仍用 `.caption2`，见遗留。 |
@@ -143,4 +144,23 @@
 
 **渲染证据（无头 Chromium，2026-11-26）**：桌面 6 页 × 亮暗 1280×800、移动 6 页 × 亮暗 390×844、导航页与 reader 样例各 × 亮暗：`small` 0、`overflowX` 0、`nameless` 0、页面错误与加载失败 0；`low`（4.5:1 以下文字对，近似值）与改动前逐页相同（browse 12 / 14、thread 9 / 9，其余 1–2），移动与导航页 0。reader 样例深色下的 `low` 读数是工具按白色背景估算的假象（实际画布 #121212）。2026-11-22 自查里「未验证：真实浏览器」的布局溢出一项，移动六页至此有了渲染证据；焦点环的像素、原生 dialog 焦点、读屏、200% 文字放大与真机仍未验证（该渲染器对 `:focus-visible` 统一报告 3px currentColor，规则在 CSSOM 中命中聚焦控件，2px accent 未能取证）。
 
-**遗留（需产品决策，未改）**：深色下强调色文字与论坛色分类 chip 的对比（主按钮 3.23:1、Sign in / Sign out 3.75:1、Racket chip 2.77:1；契约钉死 accent 不随外观提亮、chip 用论坛自己的颜色）；thread 点赞钮仍用字体字形 ♡ / ♥（三宿主 reader 模板同款）；阅读器内点赞与 Load more 按钮高约 19–22px、更新横幅按钮 24px，低于 28px（属 reader 契约与宿主实现）。
+**遗留（需产品决策，未改）**：~~深色下强调色文字与论坛色分类 chip 的对比~~（已于 2026-11-26 落地，见下节）；thread 点赞钮仍用字体字形 ♡ / ♥（三宿主 reader 模板同款）；阅读器内点赞与 Load more 按钮高约 19–22px、更新横幅按钮 24px，低于 28px（属 reader 契约与宿主实现）。
+
+## 对比度落地（2026-11-26）
+
+家族基线 `2026-11-20-minimal-family`，起始 SHA `9e94e4a`，只动 `design/`。上节遗留的强调色与分类 chip 由 owner 授权按「保色相、普通文字不低于 4.5:1」处理；这是契约变更，不只是调值。
+
+| 项 | 亮色 | 暗色 | 说明 |
+|---|---|---|---|
+| `--accent` | `#c15f3c` → `#a25032` | 新增 `#cf8266` | 同一陶土色相。亮色对白底 5.65、`--bg` 5.28、`--accent-soft` 4.63；暗色对 `--surface` 5.31、`--accent-soft` 4.56。 |
+| `--liked` | `#e0413e` → `#da2623` | 新增 `#e2504d` | 点赞数文字与爱心。 |
+| 分类 chip | 由内联十六进制改为五个 token：`#95601b` `#9500f2` `#1c7391` `#307848` `#6c6c6c` | `#d98e2b` `#c261ff` `#28a3cf` `#45ad68` `#999999` | announce / racket / general / internals / meta。色相仍是论坛各自的类别色；亮色取加深值、暗色取提亮值，文字压在自身 14% 弱底上过线。侧栏分类圆点保留论坛原色（图形，不承载文字）。 |
+| 头像底色（`thread.html`） | `#4f7db3` `#b36a4f` `#4f9e6e` → `#4b78ad` `#aa6349` `#41835b` | 同亮色 | 白色首字母压在上面，原为 4.27 / 4.12 / 3.26。 |
+| `reader/index.html` | `--reader-accent` `#A25032`、`--reader-liked` `#DA2623` | `#CF8266` `#E2504D`（`prefers-color-scheme`） | 阅读器是三宿主模板内嵌的契约样式，原先写死单一 accent。改为带系统亮暗对的 CSS 变量，宿主可覆盖。 |
+
+- **移动端**：`--m-accent-text` 仍由 `--accent` 与 `--ink` 派生，随新值自动过线，未另改。
+- **可访问名称**：`mobile-browse.html` 搜索框的名字原先只挂在 `<label>` 的 `aria-label` 上，输入框自身补 `aria-label`。
+- **评审入口提交**：`design/index.html` 自本次起入库。它是自包含的导航页（内联样式、不加载 `shared.css`、跟随系统外观），按 `<title>` 列出桌面 7 项（含 `reader/index.html` 排版样例）与移动 6 页。此前它不入库，而六个移动页的返回链接指向它，克隆后是悬空链接。
+- **产品侧待同步**：`DesignTokens.swift`（accent 亮暗对、liked）、三宿主 reader 模板与 `docs/reader-design.md`（阅读器 accent/liked 值）、应用内分类 chip 取色，随下一个实现切片对齐。
+
+验证：无头 Edge，桌面 6 页 × 亮暗 1280×800、移动 6 页 × 亮暗 390×844、reader × 亮暗，脚本测量：低于 4.5:1 的文字对由 47 / 44 降为 0 / 0；`small` 0、`overflowX` 0、`nameless` 0、页面错误 0。

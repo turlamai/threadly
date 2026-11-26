@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Threadly — prototype review entry</title>
+<style>
+  /* Self-contained: the entry page does not load the product stylesheets, so it cannot inherit layout rules. */
+  :root { color-scheme: light dark; --bg: #F7F4EF; --panel: #FFFDF9; --ink: #292524; --mute: #6B6660; --line: rgba(0,0,0,.12); }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171412; --panel: #2A2521; --ink: #D6D3D1; --mute: #A39C92; --line: rgba(255,255,255,.14); } }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 24px 48px; background: var(--bg); color: var(--ink);
+    font: 14px/1.6 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 24px; line-height: 1.3; font-weight: 600; }
+  h2 { margin: 24px 0 8px; font-size: 16px; font-weight: 600; }
+  p { margin: 8px 0 0; color: var(--mute); }
+  a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 4px; }
+  ul { margin: 0; padding: 0; list-style: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+  li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+  li:last-child { border-bottom: 0; }
+  li a { flex: 1 1 200px; font-weight: 500; text-decoration: none; }
+  li a:hover { text-decoration: underline; }
+  code { font: 12px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace; color: var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Threadly — prototype review entry</h1>
+    <p>Navigation for every prototype under `design/`. The contract lives in <a href="DESIGN.md">DESIGN.md</a>. This page follows the system colour scheme.</p>
+  </header>
+    <section>
+      <h2>Desktop prototypes</h2>
+      <ul>
+      <li><a href="prototype/ai.html">AI panel（BYOK）</a><code>prototype/ai.html</code></li>
+      <li><a href="prototype/browse.html">Browse（英雄屏）</a><code>prototype/browse.html</code></li>
+      <li><a href="prototype/notifications.html">Notifications</a><code>prototype/notifications.html</code></li>
+      <li><a href="prototype/reply.html">Reply composer</a><code>prototype/reply.html</code></li>
+      <li><a href="prototype/signin.html">Sign in</a><code>prototype/signin.html</code></li>
+      <li><a href="prototype/thread.html">Thread reader</a><code>prototype/thread.html</code></li>
+      <li><a href="reader/index.html">Threadly reader prototype — 0.15.0</a><code>reader/index.html</code></li>
+      </ul>
+    </section>
+    <section>
+      <h2>Mobile views</h2>
+      <ul>
+      <li><a href="prototype/mobile-ai.html">Mobile ai</a><code>prototype/mobile-ai.html</code></li>
+      <li><a href="prototype/mobile-browse.html">Mobile browse</a><code>prototype/mobile-browse.html</code></li>
+      <li><a href="prototype/mobile-notifications.html">Mobile notifications</a><code>prototype/mobile-notifications.html</code></li>
+      <li><a href="prototype/mobile-reply.html">Mobile reply</a><code>prototype/mobile-reply.html</code></li>
+      <li><a href="prototype/mobile-signin.html">Mobile signin</a><code>prototype/mobile-signin.html</code></li>
+      <li><a href="prototype/mobile-thread.html">Mobile thread</a><code>prototype/mobile-thread.html</code></li>
+      </ul>
+    </section>
+</main>
+</body>
+</html>

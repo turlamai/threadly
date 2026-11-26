@@ -75,7 +75,7 @@ function render(){
 }
 function renderBrowse(){
  header('Browse','Racket community');
- $('head').insertAdjacentHTML('beforeend',`<div class="m-search"><label for="search" aria-label="Search the archive">${icon('search')}</label><input id="search" type="search" placeholder="Search the archive" value="${escape(state.query)}" autocomplete="off">${action('clear-search','Clear','id="clearSearch"'+(!state.query?' hidden':''))}</div><div class="m-filter">${action('categories',icon('tray')+`<span>${escape(state.category)}</span>`,'aria-haspopup="dialog"')}<span id="topicCount" class="m-caption m-tabular"></span></div>`);
+ $('head').insertAdjacentHTML('beforeend',`<div class="m-search"><label for="search" aria-label="Search the archive">${icon('search')}</label><input id="search" type="search" aria-label="Search the archive" placeholder="Search the archive" value="${escape(state.query)}" autocomplete="off">${action('clear-search','Clear','id="clearSearch"'+(!state.query?' hidden':''))}</div><div class="m-filter">${action('categories',icon('tray')+`<span>${escape(state.category)}</span>`,'aria-haspopup="dialog"')}<span id="topicCount" class="m-caption m-tabular"></span></div>`);
  $('content').innerHTML='<div id="topicRows"></div>';
  $('bottom').innerHTML=`<span class="m-caption">${state.auth?'Signed in as samr':'Read without an account'}</span>${state.auth?action('notifications',icon('reply')+'Notifications'):action('signin','Sign in')}`;
  renderTopicRows();
