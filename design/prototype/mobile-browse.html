@@ -75,11 +75,12 @@ function render(){
 }
 function renderBrowse(){
  header('Browse','Racket community');
- $('head').insertAdjacentHTML('beforeend',`<div class="m-search"><label for="search" aria-label="Search the archive">${icon('search')}</label><input id="search" type="search" aria-label="Search the archive" placeholder="Search the archive" value="${escape(state.query)}" autocomplete="off">${action('clear-search','Clear','id="clearSearch"'+(!state.query?' hidden':''))}</div><div class="m-filter">${action('categories',icon('tray')+`<span>${escape(state.category)}</span>`,'aria-haspopup="dialog"')}<span id="topicCount" class="m-caption m-tabular"></span></div>`);
+ $('head').insertAdjacentHTML('beforeend',`<div class="m-search"><label for="search" aria-label="Search the archive">${icon('search')}</label><input id="search" type="search" aria-label="Search the archive" placeholder="Search the archive" value="${escape(state.query)}" autocomplete="off">${action('clear-search','Clear','id="clearSearch"'+(!state.query?' hidden':''))}</div><div class="m-filter">${action('categories',icon('tray')+`<span>${escape(state.category)}</span>`,'aria-haspopup="dialog"')}<span id="topicCount" class="m-caption m-tabular" role="status" aria-live="polite"></span></div>`);
  $('content').innerHTML='<div id="topicRows"></div>';
  $('bottom').innerHTML=`<span class="m-caption">${state.auth?'Signed in as samr':'Read without an account'}</span>${state.auth?action('notifications',icon('reply')+'Notifications'):action('signin','Sign in')}`;
  renderTopicRows();
- $('search').addEventListener('input',event=>{state.query=event.target.value;state.forceEmpty=false;renderTopicRows();persist();});
+ $('search').addEventListener('compositionend',event=>event.target.dispatchEvent(new Event('input',{bubbles:true})));
+ $('search').addEventListener('input',event=>{if(event.isComposing)return;state.query=event.target.value;state.forceEmpty=false;renderTopicRows();persist();});
 }
 function renderTopicRows(){
  const rows=topics.filter(t=>(state.category==='Latest'||t.category===state.category)&&(t.title+' '+t.category).toLowerCase().includes(state.query.toLowerCase().trim()));
