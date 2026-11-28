@@ -75,17 +75,18 @@ function render(){
 }
 function renderBrowse(){
  header('Browse','Racket community');
- $('head').insertAdjacentHTML('beforeend',`<div class="m-search"><label for="search" aria-label="Search the archive">${icon('search')}</label><input id="search" type="search" aria-label="Search the archive" placeholder="Search the archive" value="${escape(state.query)}" autocomplete="off">${action('clear-search','Clear','id="clearSearch"'+(!state.query?' hidden':''))}</div><div class="m-filter">${action('categories',icon('tray')+`<span>${escape(state.category)}</span>`,'aria-haspopup="dialog"')}<span id="topicCount" class="m-caption m-tabular"></span></div>`);
+ $('head').insertAdjacentHTML('beforeend',`<div class="m-search"><label for="search" aria-label="Search the archive">${icon('search')}</label><input id="search" type="search" aria-label="Search the archive" placeholder="Search the archive" value="${escape(state.query)}" autocomplete="off">${action('clear-search','Clear','id="clearSearch"'+(!state.query?' hidden':''))}</div><div class="m-filter">${action('categories',icon('tray')+`<span>${escape(state.category)}</span>`,'aria-haspopup="dialog"')}<span id="topicCount" class="m-caption m-tabular" role="status" aria-live="polite"></span></div>`);
  $('content').innerHTML='<div id="topicRows"></div>';
  $('bottom').innerHTML=`<span class="m-caption">${state.auth?'Signed in as samr':'Read without an account'}</span>${state.auth?action('notifications',icon('reply')+'Notifications'):action('signin','Sign in')}`;
  renderTopicRows();
- $('search').addEventListener('input',event=>{state.query=event.target.value;state.forceEmpty=false;renderTopicRows();persist();});
+ $('search').addEventListener('compositionend',event=>event.target.dispatchEvent(new Event('input',{bubbles:true})));
+ $('search').addEventListener('input',event=>{if(event.isComposing)return;state.query=event.target.value;state.forceEmpty=false;renderTopicRows();persist();});
 }
 function renderTopicRows(){
  const rows=topics.filter(t=>(state.category==='Latest'||t.category===state.category)&&(t.title+' '+t.category).toLowerCase().includes(state.query.toLowerCase().trim()));
  const visible=state.forceEmpty?[]:rows;
  $('topicCount').textContent=visible.length+' topics';$('clearSearch').hidden=!state.query;
- $('topicRows').innerHTML=visible.length?visible.map(t=>`<button type="button" class="m-topic" data-topic="${t.id}"><span class="m-topic-top"><span class="m-chip"><span class="m-dot" style="--category:${categories[t.category]}"></span>${t.category}</span><time class="m-caption m-tabular" title="${t.date}">${t.time}</time></span><span class="m-topic-title">${escape(t.title)}</span><span class="m-counts"><span aria-label="${t.replies} replies">${icon('reply')}${t.replies+state.extra.filter(p=>p.topic===t.id).length}</span><span aria-label="${t.views} views">${icon('eye')}${t.views}</span><span aria-label="${t.likes} likes">${icon('heart')}${t.likes}</span>${t.new&&!(state.read[t.id]>0)?`<span class="m-pill">${t.new} new</span>`:''}</span></button>`).join(''):`<div class="m-empty"><h2>Nothing here yet</h2><p>Try a different category or search the archive.</p>${action('reset','Show latest topics','','m-secondary')}</div>`;
+ $('topicRows').innerHTML=visible.length?visible.map(t=>`<button type="button" class="m-topic" data-topic="${t.id}"><span class="m-topic-top"><span class="m-chip"><span class="m-dot" style="--category:${categories[t.category]}"></span>${t.category}</span><time class="m-caption m-tabular" title="${t.date}">${t.time}</time></span><span class="m-topic-title">${escape(t.title)}</span><span class="m-counts"><span aria-label="${t.replies+state.extra.filter(p=>p.topic===t.id).length} replies">${icon('reply')}${t.replies+state.extra.filter(p=>p.topic===t.id).length}</span><span aria-label="${t.views} views">${icon('eye')}${t.views}</span><span aria-label="${t.likes} likes">${icon('heart')}${t.likes}</span>${t.new&&!(state.read[t.id]>0)?`<span class="m-pill">${t.new} new</span>`:''}</span></button>`).join(''):`<div class="m-empty"><h2>Nothing here yet</h2><p>Try a different category or search the archive.</p>${action('reset','Show latest topics','','m-secondary')}</div>`;
 }
 function showCategories(trigger){
  dialogTrigger=trigger;
@@ -171,7 +172,7 @@ function renderSignin(){
  $('content').innerHTML=`<div class="m-form"><div class="m-stack"><h2>Approve in your browser</h2><p>Open the forum approval page, approve Threadly, then copy the code it shows.</p>${action('approval',icon('globe')+'Open approval page','','m-secondary')}</div><div><label class="m-label" for="approvalCode">Approval code</label><input class="m-input" id="approvalCode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste the code"><p class="m-caption" style="margin-top:8px">A code is required to complete sign-in.</p></div><div class="m-error" id="signinError" role="alert" hidden></div><p class="m-caption">This is a local approval preview. No credentials are sent to the forum. You can browse and read without signing in.</p></div>`;
  $('bottom').innerHTML=action('complete-signin','Complete sign-in','id="completeSignin" disabled','m-primary');
  $('approvalCode').addEventListener('input',event=>{$('completeSignin').disabled=!event.target.value.trim();$('signinError').hidden=true;});
- $('approvalCode').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing&&!$('completeSignin').disabled){event.preventDefault();completeSignin();}});
+ $('approvalCode').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing&&!event.repeat&&!$('completeSignin').disabled){event.preventDefault();completeSignin();}});
 }
 function showApproval(trigger){
  dialogTrigger=trigger;$('drawerTitle').textContent='Browser approval';
@@ -226,7 +227,7 @@ function dispatch(event){
  }
  else if(act==='like'){
   if(!state.auth)return;
-  const key=state.topic+':'+button.dataset.post;state.likes[key]=!state.likes[key];persist();const p=allPosts().find(p=>p.id===button.dataset.post);button.setAttribute('aria-pressed',String(state.likes[key]));button.setAttribute('aria-label',(state.likes[key]?'Unlike':'Like')+' post');button.innerHTML=icon('heart')+'<span>'+((p.likes||0)+(state.likes[key]?1:0))+'</span>';
+  const key=state.topic+':'+button.dataset.post;state.likes[key]=!state.likes[key];persist();const p=allPosts().find(p=>p.id===button.dataset.post);button.setAttribute('aria-pressed',String(state.likes[key]));button.setAttribute('aria-label',(state.likes[key]?'Unlike':'Like')+' post '+button.closest('[data-post-index]')?.dataset.postIndex);button.innerHTML=icon('heart')+'<span>'+((p.likes||0)+(state.likes[key]?1:0))+'</span>';
  }
  else if(act==='ai')showAI(button);
  else if(act==='close-ai')closeAI();
